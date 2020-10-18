@@ -1,114 +1,133 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
-
+import 'react-native-gesture-handler';
 import React from 'react';
-import {
-  SafeAreaView,
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
-  StatusBar,
-} from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import AsyncStorage from '@react-native-community/async-storage';
 
-import {
-  Header,
-  LearnMoreLinks,
-  Colors,
-  DebugInstructions,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+import SplashScreen from './pages/SplashScreen';
+import LoginScreen from './pages/LoginScreen';
+import RegistrationScreen from './pages/RegistrationScreen';
+import HomeScreen from './pages/HomeScreen';
 
-const App: () => React$Node = () => {
-  return (
-    <>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}>
-          <Header />
-          {global.HermesInternal == null ? null : (
-            <View style={styles.engine}>
-              <Text style={styles.footer}>Engine: Hermes</Text>
-            </View>
-          )}
-          <View style={styles.body}>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Step One</Text>
-              <Text style={styles.sectionDescription}>
-                Edit <Text style={styles.highlight}>src/App.js</Text> to change this
-                screen and then come back to see your edits.
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>See Your Changes</Text>
-              <Text style={styles.sectionDescription}>
-                <ReloadInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Debug</Text>
-              <Text style={styles.sectionDescription}>
-                <DebugInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Learn More</Text>
-              <Text style={styles.sectionDescription}>
-                Read the docs to discover what to do next:
-              </Text>
-            </View>
-            <LearnMoreLinks />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </>
+import { AuthContext } from './lib/utils';
+import { getHealth, postUserLogin } from './lib/actions';
+
+import RootNavigator from './lib/navigators';
+
+const Stack = createStackNavigator();
+
+function App() {
+  const [state, dispatch] = React.useReducer(
+    (prevState, action) => {
+      switch (action.type) {
+        case 'RESTORE_TOKEN':
+          return {
+            ...prevState,
+            token: action.token,
+            loading: false,
+          };
+        case 'SIGN_IN':
+          return {
+            ...prevState,
+            token: action.token,
+          };
+        case 'SIGN_OUT':
+          return {
+            ...prevState,
+            token: null,
+          };
+      }
+    },
+    {
+      loading: true,
+      token: null,
+    }
   );
-};
 
-const styles = StyleSheet.create({
-  scrollView: {
-    backgroundColor: Colors.lighter,
-  },
-  engine: {
-    position: 'absolute',
-    right: 0,
-  },
-  body: {
-    backgroundColor: Colors.white,
-  },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.black,
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-    color: Colors.dark,
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  footer: {
-    color: Colors.dark,
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
-  },
-});
+  React.useEffect(() => {
+    // Fetch the token from storage then navigate to our appropriate place
+    const bootstrapAsync = async () => {
+      let token;
+
+      try {
+        //await getHealth();
+        token = await AsyncStorage.getItem('token');
+      } catch (e) {
+        // Restoring token failed
+      }
+
+      // After restoring token, we may need to validate it in production apps
+
+      // This will switch to the App screen or Auth screen and this loading
+      // screen will be unmounted and thrown away.
+
+      
+      setTimeout(() => {
+        console.warn('welcome');
+        dispatch({ type: 'RESTORE_TOKEN', token });
+      }, 1000);
+    };
+
+    bootstrapAsync();
+  }, []);
+
+  const authContext = React.useMemo(
+    () => ({
+      signIn: async data => {
+        postUserLogin(data).then(async payload => {
+          console.log(payload);
+
+          if (payload.token) {
+            await AsyncStorage.setItem('token', payload.token);
+            dispatch({ type: 'SIGN_IN', token: payload.token });
+          }
+        }).catch(err => {
+          console.warn(err.data);
+        });
+      },
+      signOut: async () => {
+        await AsyncStorage.removeItem('token');
+        dispatch({ type: 'SIGN_OUT' });
+      },
+      signUp: async data => {
+        // In a production app, we need to send user data to server and get a token
+        // We will also need to handle errors if sign up failed
+        // After getting token, we need to persist the token using `AsyncStorage`
+        // In the example, we'll use a dummy token
+
+        dispatch({ type: 'SIGN_IN', token: 'dummy-auth-token' });
+      },
+    }),
+    []
+  );
+
+  return (
+    <AuthContext.Provider value={authContext}>
+      <NavigationContainer>
+        <RootNavigator loading={state.loading} token={state.token} />
+      </NavigationContainer>
+    </AuthContext.Provider>
+  );
+}
+
+/* 
+<Stack.Navigator>
+          {
+            state.loading ? (
+              <Stack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false }} />
+            ) :
+              state.token ? (
+                <>
+                  <Stack.Screen name="Home" component={HomeScreen} />
+                </>
+              ) : (
+                  <>
+                    <Stack.Screen name="Login" component={LoginScreen} />
+                    <Stack.Screen name="Registration" component={RegistrationScreen} />
+                  </>
+                )
+          }
+        </Stack.Navigator>
+*/
 
 export default App;
