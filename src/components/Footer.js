@@ -1,39 +1,20 @@
 import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-const Footer = () => {
-  return (
-    <View style={styles.wrapper}>
-      <Text style={styles.title}>By continuing you agree to:</Text>
+const Footer = (props) => {
+  const { children, style } = props;
 
-      <View style={styles.linkWrapper}>
-        <Text style={styles.link}>Privacy Policy</Text>
-        <Text style={styles.link}>Terms & Conditions</Text>
-        <Text style={styles.link}>Content Policy</Text>
-      </View>
-    </View>
-  );
-}
+  return <View style={[styles.wrapper, style]}>{children}</View>;
+};
 
 const styles = StyleSheet.create({
   wrapper: {
-    //flex: 1,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  linkWrapper: {
     width: '100%',
+    marginTop: 16,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    alignItems: 'flex-end',
   },
-  title: {
-    color: 'grey',
-  },
-  link: {
-    textDecorationLine: 'underline',
-    color: 'darkgrey',
-  }
 });
 
 export default Footer;

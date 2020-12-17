@@ -1,48 +1,38 @@
 import 'react-native-gesture-handler';
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import AsyncStorage from '@react-native-community/async-storage';
 
-import SplashScreen from './pages/SplashScreen';
-import LoginScreen from './pages/LoginScreen';
-import RegistrationScreen from './pages/RegistrationScreen';
-import HomeScreen from './pages/HomeScreen';
+import RootNavigator from '#/lib/navigators';
+import { AuthProvider, RestaurantProvider } from '#/lib/contexts';
+import { authReducer, restaurantReducer } from '#/lib/reducers';
+import { getHealth } from '#/lib/actions';
 
-import { AuthContext } from './lib/utils';
-import { getHealth, postUserLogin } from './lib/actions';
+import theme from '#/styles/theme.style';
 
-import RootNavigator from './lib/navigators';
-
-const Stack = createStackNavigator();
+const MyTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    notification: theme.PRIMARY_COLOR,
+    background: theme.PRIMARY_BACKGROUND_COLOR,
+  },
+};
 
 function App() {
-  const [state, dispatch] = React.useReducer(
-    (prevState, action) => {
-      switch (action.type) {
-        case 'RESTORE_TOKEN':
-          return {
-            ...prevState,
-            token: action.token,
-            loading: false,
-          };
-        case 'SIGN_IN':
-          return {
-            ...prevState,
-            token: action.token,
-          };
-        case 'SIGN_OUT':
-          return {
-            ...prevState,
-            token: null,
-          };
-      }
-    },
-    {
-      loading: true,
-      token: null,
-    }
-  );
+  const [stateAuth, dispatchAuth] = React.useReducer(authReducer, {
+    loading: true,
+    token: null,
+  });
+
+  const [stateRestaurant, dispatchRestaurant] = React.useReducer(restaurantReducer, {
+    loading: true,
+    qr: null,
+    basketSize: 0,
+    activeOrder: false,
+  });
+
+  // TODO: add restaurant state & dispatch
 
   React.useEffect(() => {
     // Fetch the token from storage then navigate to our appropriate place
@@ -50,7 +40,7 @@ function App() {
       let token;
 
       try {
-        //await getHealth();
+        // await getHealth();
         token = await AsyncStorage.getItem('token');
       } catch (e) {
         // Restoring token failed
@@ -60,74 +50,28 @@ function App() {
 
       // This will switch to the App screen or Auth screen and this loading
       // screen will be unmounted and thrown away.
-
-      
-      setTimeout(() => {
-        console.warn('welcome');
-        dispatch({ type: 'RESTORE_TOKEN', token });
-      }, 1000);
+      dispatchAuth({ type: 'RESTORE_TOKEN', token });
     };
 
     bootstrapAsync();
   }, []);
 
-  const authContext = React.useMemo(
-    () => ({
-      signIn: async data => {
-        postUserLogin(data).then(async payload => {
-          console.log(payload);
-
-          if (payload.token) {
-            await AsyncStorage.setItem('token', payload.token);
-            dispatch({ type: 'SIGN_IN', token: payload.token });
-          }
-        }).catch(err => {
-          console.warn(err.data);
-        });
-      },
-      signOut: async () => {
-        await AsyncStorage.removeItem('token');
-        dispatch({ type: 'SIGN_OUT' });
-      },
-      signUp: async data => {
-        // In a production app, we need to send user data to server and get a token
-        // We will also need to handle errors if sign up failed
-        // After getting token, we need to persist the token using `AsyncStorage`
-        // In the example, we'll use a dummy token
-
-        dispatch({ type: 'SIGN_IN', token: 'dummy-auth-token' });
-      },
-    }),
-    []
-  );
-
   return (
-    <AuthContext.Provider value={authContext}>
-      <NavigationContainer>
-        <RootNavigator loading={state.loading} token={state.token} />
-      </NavigationContainer>
-    </AuthContext.Provider>
+    <AuthProvider dispatch={dispatchAuth}>
+      <RestaurantProvider dispatch={dispatchRestaurant}>
+        <NavigationContainer theme={MyTheme}>
+          <RootNavigator
+            loading={stateAuth.loading}
+            token={stateAuth.token}
+            user={stateAuth.user}
+            qr={stateRestaurant.qr}
+            basketSize={stateRestaurant.basketSize}
+            activeOrder={stateRestaurant.activeOrder}
+          />
+        </NavigationContainer>
+      </RestaurantProvider>
+    </AuthProvider>
   );
 }
-
-/* 
-<Stack.Navigator>
-          {
-            state.loading ? (
-              <Stack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false }} />
-            ) :
-              state.token ? (
-                <>
-                  <Stack.Screen name="Home" component={HomeScreen} />
-                </>
-              ) : (
-                  <>
-                    <Stack.Screen name="Login" component={LoginScreen} />
-                    <Stack.Screen name="Registration" component={RegistrationScreen} />
-                  </>
-                )
-          }
-        </Stack.Navigator>
-*/
 
 export default App;

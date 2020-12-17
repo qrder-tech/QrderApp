@@ -1,16 +1,8 @@
 import React from 'react';
-import {
-  Button,
-  Image,
-  StyleSheet,
-  Text,
-  TextInput,
-  View
-} from 'react-native';
+import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { Container } from '../components';
-import theme from '../styles/theme.style';
-
+import { Container, Image } from '#/components';
+import theme from '#/styles/theme.style';
 
 class SplashScreen extends React.Component {
   render() {
@@ -18,7 +10,9 @@ class SplashScreen extends React.Component {
       <Container>
         <View style={styles.wrapper}>
           <View style={styles.logoWrapper}>
-            <Image style={styles.logo} source={{ uri: "https://reactnative.dev/docs/assets/p_cat1.png" }} />
+            <Image
+              source={{ uri: 'https://reactnative.dev/docs/assets/p_cat1.png' }}
+            />
           </View>
         </View>
       </Container>
@@ -39,9 +33,6 @@ const styles = StyleSheet.create({
     width: '75%',
     aspectRatio: 1,
   },
-  logo: {
-    flex: 1,
-  }
 });
 
 export default SplashScreen;
