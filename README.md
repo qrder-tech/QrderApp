@@ -23,6 +23,6 @@ yarn start
 ```
 
 ## APK
-[app-debug.apk](./android/app/build/outputs/apk/debug/app-debug.apk)
+[app-release.aab](https://drive.google.com/file/d/1lTcud96ZgEMELTtOYApcrp1nfTCHACoF/view?usp=sharing)
 
-[app-release.apk](./android/app/build/outputs/apk/release/app-release.apk)
+[app-release.apk](https://drive.google.com/file/d/16WcMJPqMwwNyCT9i3jmMT9XRVdBLh2Ls/view)
