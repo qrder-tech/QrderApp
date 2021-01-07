@@ -79,13 +79,12 @@ class HomeScreen extends React.Component {
         if (payload.Orders) {
           const order = payload.Orders[0];
           if (order && order.uuid) {
-            /*
             readQr({
               restaurantUuid: order.restaurantUuid,
-              tableUuid: order.tableUuid
+              tableUuid: order.tableUuid,
             });
+
             saveOrder(order.uuid);
-            */
           }
         }
       })

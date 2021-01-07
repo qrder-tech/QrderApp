@@ -18,6 +18,11 @@ class OtherScreen extends React.Component {
   componentDidMount() {
   }
 
+  _signOut = () => {
+    const { signOut } = this.context;
+    signOut();
+  }
+
   _goTo = (page) => {
     const { navigation } = this.props;
     navigation.navigate(page);

@@ -17,7 +17,7 @@ const ModifyItem = (props) => {
   const [meta, setMeta] = useState({});
 
   const { data, callback, onPress } = props;
-  const { name, img, desc, price, metadata } = data;
+  const { name, img, desc, price, options } = data;
 
   return (
     <Popup onPress={onPress}>
@@ -54,7 +54,7 @@ const ModifyItem = (props) => {
 
         <View style={styles.body}>
           {
-            metadata && metadata.split(';').map(m => (
+            options && options.split(';').map(m => (
               <View style={styles.setting}>
                 <CheckBox value={meta[m]} onValueChange={(v) => setMeta({ ...meta, [m]: v })} />
                 <Text style={{ textTransform: 'capitalize' }}>{m}</Text>

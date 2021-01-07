@@ -9,7 +9,8 @@
     "test": "jest",
     "lint": "eslint --quiet src/.",
     "lint-fix": "eslint --fix src/.",
-    "clean": "rm -r node_modules/ && rm -rf /tmp/metro-*"
+    "clean": "rm -r node_modules/ && rm -rf /tmp/metro-*",
+    "build:android-apk": "cd android/ && ./gradlew assembleRelease"
   },
   "dependencies": {
     "@react-native-community/async-storage": "^1.12.1",
@@ -22,6 +23,7 @@
     "axios": "^0.20.0",
     "lodash": "^4.17.20",
     "moment": "^2.29.1",
+    "mqtt": "^4.2.6",
     "prop-types": "^15.7.2",
     "react": "16.13.1",
     "react-native": "0.63.3",

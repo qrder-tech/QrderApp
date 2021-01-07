@@ -17,7 +17,8 @@ import theme from '../../styles/theme.style';
 
 const OrderItem = (props) => {
   const { data } = props;
-  const { name, desc, price, img, metadata, quantity } = data;
+  const { name, desc, img, price, OrderItems } = data;
+  const { quantity, options } = OrderItems;
 
   return (
     <View style={[styles.wrapper, theme.SHADOW]}>
@@ -37,7 +38,7 @@ const OrderItem = (props) => {
             {desc}
           </Text>
           <Text style={[styles.metadata]}>
-            {metadata && metadata.split(';').join(", ")}
+            {options && options.split(';').join(", ")}
           </Text>
         </View>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>

@@ -27,7 +27,7 @@ export async function getHealth() {
 export async function postUserLogin(data) {
   const { username, password } = data;
 
-  return makeRequest('post', '/auth/login?type=user', {
+  return makeRequest('post', '/auth/login?type=consumer', {
     username,
     password,
   });
@@ -37,7 +37,7 @@ export async function postUserLogin(data) {
 export async function postUserRegister(data) {
   const { name, surname, email, username, password } = data;
 
-  return makeRequest('post', '/auth/registration?type=user', {
+  return makeRequest('post', '/auth/registration?type=consumer', {
     name,
     surname,
     email,
@@ -48,12 +48,12 @@ export async function postUserRegister(data) {
 
 // GET:/user/me
 export async function getUserMe() {
-  return middleware(true, makeRequestAuth('get', '/user/me'));
+  return middleware(true, makeRequestAuth('get', '/consumer/me'));
 }
 
 // GET:/user/orders
 export async function getUserOrders() {
-  return middleware(true, makeRequestAuth('get', '/user/orders'));
+  return middleware(true, makeRequestAuth('get', '/consumer/orders'));
 }
 
 // GET:/restaurant?uuid=
@@ -69,16 +69,31 @@ export async function getOrder(data) {
   return middleware(true, makeRequestAuth('get', '/order?uuid='.concat(uuid)));
 }
 
-// POST:/order/new
-export async function postOrderNew(data) {
+// POST:/order
+export async function postOrder(data, uuid = null) {
   const qr = await getData('qr');
   const { restaurantUuid, tableUuid } = await JSON.parse(qr);
 
-  const items = await data.map(m => reduceObj(m, ['uuid', 'metadata', 'quantity']));
-  return middleware(true, makeRequestAuth('post', '/order/new', {
+  const items = await data.map(m => reduceObj(m, ['uuid', 'options', 'quantity']));
+
+  items.map(item => {
+    item.options = item.options && item.options.split(';') || null;
+    return item;
+  });
+
+  return middleware(true, makeRequestAuth('post', '/order'.concat(uuid && `?uuid=${uuid}` || ''), {
     restaurantUuid,
     tableUuid,
     items,
     userUuid: "3d9b7b60-741f-45aa-b94a-68daa30b7ea6"
+  }));
+}
+
+// POST:/order/pay
+export async function postOrderPay(uuid, data) {
+  const { token } = data;
+
+  return middleware(true, makeRequestAuth('post', '/order/pay?uuid='.concat(uuid), {
+    token
   }));
 }

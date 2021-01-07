@@ -17,7 +17,7 @@ import theme from '../../styles/theme.style';
 
 const BasketItem = (props) => {
   const { data, deleteCallback } = props;
-  const { name, desc, price, img, metadata, quantity } = data;
+  const { name, desc, price, img, options, quantity } = data;
 
   return (
     <View style={[styles.wrapper, theme.SHADOW]}>
@@ -37,7 +37,7 @@ const BasketItem = (props) => {
             {desc}
           </Text>
           <Text style={[styles.metadata]}>
-            {metadata && metadata.split(';').join(", ")}
+            {options && options.split(';').join(", ")}
           </Text>
         </View>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>

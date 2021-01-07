@@ -12,7 +12,7 @@ import {
 import QRCodeScanner from 'react-native-qrcode-scanner';
 import { RNCamera } from 'react-native-camera';
 
-import { Container, Footer, Input } from '#/components';
+import { DefaultLayout } from '#/layouts';
 import theme from '#/styles/theme.style';
 
 import { RestaurantContext } from '#/lib/contexts';
@@ -28,18 +28,18 @@ class QRScreen extends React.Component {
   componentDidMount() {
     const { readQr } = this.context;
     readQr({
-      restaurantUuid: 'be09711a-c5b9-4bda-a464-76ca3d9ef848',
-      tableUuid: 'af92bacf-a01a-4903-99d6-2887359c1d43',
+      restaurantUuid: '56bc78e9-05fd-454c-99ad-18d479aa8ad9',
+      tableUuid: '005dd3a6-a892-4473-94eb-87fdfc167e5d',
     });
   }
 
   _onRead = (payload) => {
-    console.warn(payload.data);
+    // console.warn(payload.data);
   };
 
   render() {
     return (
-      <Container>
+      <DefaultLayout type="restaurant">
         <QRCodeScanner
           onRead={this._onRead}
           flashMode={RNCamera.Constants.FlashMode.off}
@@ -49,8 +49,9 @@ class QRScreen extends React.Component {
           topViewStyle={{ flex: 0 }}
           bottomViewStyle={{ flex: 0 }}
           cameraStyle={{ height: Dimensions.get('window').height }}
+          markerStyle={{ borderColor: theme.PRIMARY_COLOR }}
         />
-      </Container>
+      </DefaultLayout>
     );
   }
 }

@@ -74,6 +74,10 @@ export const RestaurantProvider = (props) => {
         await AsyncStorage.setItem('basket', JSON.stringify(data));
         dispatch({ type: 'UPDATE_BASKET', basketSize: data.length })
       },
+      emptyBasket: async () => {
+        await AsyncStorage.removeItem('basket');
+        dispatch({ type: 'UPDATE_BASKET', basketSize: 0 })
+      },
       getBasket: async () => {
         const basket = await AsyncStorage.getItem('basket');
         return await JSON.parse(basket);

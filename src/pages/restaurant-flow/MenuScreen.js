@@ -25,7 +25,7 @@ class MenuScreen extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { basket: [], selectedItem: null };
+    this.state = { restaurant: null, basket: [], selectedItem: null };
 
     const { navigation } = this.props;
 
@@ -48,7 +48,7 @@ class MenuScreen extends React.Component {
 
     getRestaurantUuid({ uuid: qr.restaurantUuid })
       .then((payload) => {
-        this.setState({ ...payload });
+        this.setState({ restaurant: payload });
         const { navigation } = this.props;
         navigation.setOptions({ title: payload.name });
       })
@@ -70,16 +70,16 @@ class MenuScreen extends React.Component {
     const { selectedItem } = this.state;
     this.setState({ selectedItem: null });
 
-    const metadata = await Object.keys(await pickBy(data.meta, v => v)).join(';');
+    const options = await Object.keys(await pickBy(data.meta, v => v)).join(';');
 
     const item = {
       ...selectedItem,
       quantity: data.quantity,
-      metadata
+      options
     };
 
     const { basket } = this.state;
-    const temp = await basket.filter(e => e.uuid === item.uuid && e.metadata === item.metadata);
+    const temp = await basket.filter(e => e.uuid === item.uuid && e.options === item.options);
     temp.length > 0 ? (temp[0].quantity += item.quantity) : basket.push(item);
 
     this.setState({ basket });
@@ -88,20 +88,20 @@ class MenuScreen extends React.Component {
   }
 
   render() {
-    const { menu, basket, selectedItem } = this.state;
+    const { restaurant, selectedItem } = this.state;
     return (
       <DefaultLayout type="restaurant">
         {selectedItem && (<MenuModifyItem data={selectedItem} callback={this._saveItem} onPress={() => this.setState({ selectedItem: null })} />)}
         <ScrollView>
           <View>
             {
-              menu && menu.map(subtopic => (
+              (restaurant && restaurant.Menu) && restaurant.Menu.catalog.map(subtopic => (
                 <>
-                  <Card key={subtopic.uuid} style={styles.subtopicCard} radiusSide="none">
-                    <Title style={styles.subtopicTitle} type="h5">{subtopic.name}</Title>
+                  <Card key={subtopic} style={styles.subtopicCard} radiusSide="none">
+                    <Title style={styles.subtopicTitle} type="h5">{subtopic}</Title>
                   </Card>
                   {
-                    subtopic && subtopic.Items.map(item => (
+                    restaurant.Menu.items[subtopic].map(item => (
                       <MenuItem key={item.uuid} data={item} onPress={() => this._selectItem(item)} />
                     ))
                   }

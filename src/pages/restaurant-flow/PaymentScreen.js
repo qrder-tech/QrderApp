@@ -5,13 +5,8 @@ import { DefaultLayout } from '#/layouts';
 import { Button, Footer, Input, Title } from '#/components';
 import theme from '#/styles/theme.style';
 
+import { getOrder, postOrderPay } from '#/lib/actions';
 import { RestaurantContext } from '#/lib/contexts';
-
-const DUMMY_ORDER = {
-  "uuid": "01b95b8e-da8f-441b-af0c-835aea23f5d2",
-  "total_items": 5,
-  "total_price": 106,
-};
 
 const DEBUG = true;
 
@@ -21,8 +16,8 @@ class PaymentScreen extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      basket: null,
-      order: DUMMY_ORDER,
+      order: null,
+      savedOrder: null,
       data: {
         name: DEBUG && "John Doe",
         number: DEBUG && "1111 1111 1111 1111",
@@ -30,14 +25,53 @@ class PaymentScreen extends React.Component {
         ccv: DEBUG && "123"
       }
     };
+
+    const { navigation } = this.props;
+
+    navigation.addListener('focus', () => {
+      const { getSavedOrder } = this.context;
+
+      getSavedOrder().then(payload => {
+        this.setState({ savedOrder: payload });
+        this._getOrder();
+      }).catch(err => {
+        console.warn("err:", err);
+      });
+    });
   }
 
   componentDidMount() {
   }
 
+  _getOrder = () => {
+    const { savedOrder } = this.state;
+
+    if (!savedOrder) {
+      return;
+    }
+
+    getOrder({ uuid: savedOrder }).then(payload => {
+      this.setState({ order: payload });
+    }).catch(err => {
+      console.warn("err:", err);
+    });
+  }
+
   _pay = () => {
-    const { paymentDone } = this.context;
-    paymentDone();
+    const { order } = this.state;
+
+    if (!order) {
+      return;
+    }
+
+    const { uuid } = order;
+
+    postOrderPay(uuid, { token: 'dummy-token' }).then(payload => {
+      const { paymentDone } = this.context;
+      paymentDone();
+    }).catch(err => {
+      console.warn("err:", err);
+    });
   }
 
   render() {
@@ -45,7 +79,7 @@ class PaymentScreen extends React.Component {
     return (
       <DefaultLayout type="restaurant">
         <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', paddingRight: 18, marginBottom: 4, backgroundColor: theme.SECONDARY_COLOR }}>
-          <Title type="h5" style={{ fontSize: 16, color: theme.PRIMARY_COLOR }}>Total: {order.total_price} ₺</Title>
+          <Title type="h5" style={{ fontSize: 16, color: theme.PRIMARY_COLOR }}>Total: {order ? order.totalPrice : 0} ₺</Title>
         </View>
 
         <ScrollView>
