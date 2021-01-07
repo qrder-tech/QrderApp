@@ -19,6 +19,7 @@ class BasketScreen extends React.Component {
         uuid: null
       },
       savedOrder: null,
+      loading: false,
     };
     const { navigation } = this.props;
 
@@ -58,13 +59,14 @@ class BasketScreen extends React.Component {
   }
 
   _order = () => {
+    this.setState({ loading: true });
     const { basket, order } = this.state;
     postOrder(basket, order.uuid).then(payload => {
       const { saveOrder } = this.context;
       this.setState({ savedOrder: payload.uuid });
       saveOrder(payload.uuid);
       this._getOrder();
-      this.setState({ basket: null });
+      this.setState({ basket: null, loading: false });
       const { emptyBasket } = this.context;
       emptyBasket();
     }).catch(err => {
@@ -83,9 +85,9 @@ class BasketScreen extends React.Component {
   }
 
   render() {
-    const { basket, order } = this.state;
+    const { basket, order, loading } = this.state;
     return (
-      <DefaultLayout type="restaurant">
+      <DefaultLayout type="restaurant" loading={loading}>
         <ScrollView>
           {order.uuid && (
             <Collapse badge={order.Items ? order.Items.length : 0} style={{ marginBottom: 8 }} title="Ordered Items">

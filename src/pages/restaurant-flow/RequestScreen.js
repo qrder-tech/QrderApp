@@ -8,6 +8,8 @@ import theme from '#/styles/theme.style';
 import { getOrder } from '#/lib/actions';
 import { RestaurantContext } from '#/lib/contexts';
 
+import mq from '#/lib/clients/mqtt';
+
 class RequestScreen extends React.Component {
   static contextType = RestaurantContext;
 
@@ -50,6 +52,14 @@ class RequestScreen extends React.Component {
   }
 
   _requestAccount = () => {
+    const { order } = this.state;
+
+    if (!order) {
+      return;
+    }
+
+    mq.client.publish(`restaurant/${order.restaurantUuid}/table/${order.tableUuid}`, "request:payment");
+
     Alert.alert(
       "We have received your request!",
       "As soon as possible, your account will be delivered physically.",
@@ -66,6 +76,14 @@ class RequestScreen extends React.Component {
   };
 
   _callWaiter = () => {
+    const { order } = this.state;
+
+    if (!order) {
+      return;
+    }
+
+    mq.client.publish(`restaurant/${order.restaurantUuid}/table/${order.tableUuid}`, "request:waiter");
+
     Alert.alert(
       "We have received your request!",
       "As soon as possible, one of the our helpful friends will take care of you.",

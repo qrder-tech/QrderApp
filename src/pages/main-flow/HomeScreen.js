@@ -8,6 +8,9 @@ import theme from '#/styles/theme.style';
 import { getUserMe, getUserOrders } from '#/lib/actions';
 import { RestaurantContext } from '#/lib/contexts';
 
+import AsyncStorage from '@react-native-community/async-storage';
+import mq from '#/lib/clients/mqtt';
+
 const DUMMY_ORDER = [{
   "uuid": "01b95b8e-da8f-441b-af0c-835aea23f5d2",
   "total_items": 5,
@@ -71,10 +74,17 @@ class HomeScreen extends React.Component {
     const { saveOrder, readQr } = this.context;
 
     getUserMe()
-      .then((payload) => {
+      .then(async (payload) => {
         this.setState({ loading: false, user: payload });
         const { navigation } = this.props;
         navigation.setOptions({ title: { uuid: payload.uuid, name: payload.name + " " + payload.surname } });
+
+        try {
+          await AsyncStorage.setItem('uuid', payload.uuid);
+          mq.init();
+        } catch (err) {
+          console.warn(err);
+        }
 
         if (payload.Orders) {
           const order = payload.Orders[0];

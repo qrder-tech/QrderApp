@@ -18,6 +18,7 @@ class PaymentScreen extends React.Component {
     this.state = {
       order: null,
       savedOrder: null,
+      loading: false,
       data: {
         name: DEBUG && "John Doe",
         number: DEBUG && "1111 1111 1111 1111",
@@ -58,6 +59,7 @@ class PaymentScreen extends React.Component {
   }
 
   _pay = () => {
+    this.setState({ loading: true });
     const { order } = this.state;
 
     if (!order) {
@@ -69,15 +71,16 @@ class PaymentScreen extends React.Component {
     postOrderPay(uuid, { token: 'dummy-token' }).then(payload => {
       const { paymentDone } = this.context;
       paymentDone();
+      this.setState({ loading: false });
     }).catch(err => {
       console.warn("err:", err);
     });
   }
 
   render() {
-    const { data, order } = this.state;
+    const { data, order, loading } = this.state;
     return (
-      <DefaultLayout type="restaurant">
+      <DefaultLayout type="restaurant" loading={loading}>
         <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', paddingRight: 18, marginBottom: 4, backgroundColor: theme.SECONDARY_COLOR }}>
           <Title type="h5" style={{ fontSize: 16, color: theme.PRIMARY_COLOR }}>Total: {order ? order.totalPrice : 0} ₺</Title>
         </View>
