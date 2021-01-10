@@ -10,13 +10,14 @@ import { HeaderTitle } from '#/components';
 import theme from '#/styles/theme.style';
 
 const { LoginScreen, RegistrationScreen, WelcomeScreen } = AUTH_FLOW;
-const { FavouritesScreen, HomeScreen, NearbyRestaurantsScreen, OrderHistoryScreen, OtherScreen, QRScreen, SettingsScreen } = MAIN_FLOW;
+const { FavouritesScreen, HomeScreen, NearbyRestaurantsScreen, OrderHistoryScreen, OtherScreen, QRScreen, SettingsScreen, WalletScreen } = MAIN_FLOW;
 const { BasketScreen, ItemDetailScreen, MenuScreen, PaymentScreen, RequestScreen } = RESTAURANT_FLOW;
 
 const AuthStack = createStackNavigator();
 const BasketStack = createStackNavigator();
 const MainStack = createStackNavigator();
 const MainTab = createBottomTabNavigator();
+const OrderHistoryStack = createStackNavigator();
 const OtherStack = createStackNavigator();
 const RequestStack = createStackNavigator();
 const RestaurantStack = createStackNavigator();
@@ -100,13 +101,30 @@ const MainTabNavigator = () => (
     />
     <MainTab.Screen
       name="Orders"
-      component={OrderHistoryScreen}
+      component={OrderHistoryNavigator}
     />
     <MainTab.Screen
       name="Other"
       component={OtherNavigator}
     />
   </MainTab.Navigator>
+);
+
+const OrderHistoryNavigator = () => (
+  <OrderHistoryStack.Navigator
+    screenOptions={{
+      headerTitleAlign: 'center',
+      headerTintColor: theme.SECONDARY_COLOR,
+      headerStyle: {
+        backgroundColor: theme.PRIMARY_COLOR,
+        elevation: 3,
+      },
+      headerTitleStyle: {
+        textTransform: 'capitalize',
+      }
+    }}>
+    <OrderHistoryStack.Screen name="Previous Orders" component={OrderHistoryScreen} />
+  </OrderHistoryStack.Navigator>
 );
 
 const OtherNavigator = () => (
@@ -127,6 +145,7 @@ const OtherNavigator = () => (
     <OtherStack.Screen name="Previous Orders" component={OrderHistoryScreen} />
     <OtherStack.Screen name="Favourites" component={FavouritesScreen} />
     <OtherStack.Screen name="Nearby Restaurants" component={NearbyRestaurantsScreen} />
+    <OtherStack.Screen name="Wallet" component={WalletScreen} />
   </OtherStack.Navigator>
 );
 
@@ -183,7 +202,7 @@ const RequestNavigator = () => (
   </RequestStack.Navigator>
 );
 
-const RestaurantTabNavigator = ({ basketSize, activeOrder }) => (
+const RestaurantTabNavigator = ({ basketSize, activeOrder, restaurant }) => (
   <RestaurantTab.Navigator
     screenOptions={({ route }) => ({
       tabBarIcon: ({ focused, color, size }) => (
@@ -211,7 +230,7 @@ const RestaurantTabNavigator = ({ basketSize, activeOrder }) => (
   </RestaurantTab.Navigator>
 );
 
-const RootNavigator = ({ loading, token, user, qr, basketSize, activeOrder }) => (
+const RootNavigator = ({ loading, token, user, qr, restaurant, basketSize, activeOrder }) => (
   <RootStack.Navigator headerMode="none">
     {loading ? (
       <RootStack.Screen name="Splash" component={SplashScreen} />
@@ -221,7 +240,7 @@ const RootNavigator = ({ loading, token, user, qr, basketSize, activeOrder }) =>
       <RootStack.Screen name="App" component={MainTabNavigator} />
     ) : (
             <RootStack.Screen name="Restaurant">
-              {props => (<RestaurantTabNavigator {...props} basketSize={basketSize} activeOrder={activeOrder} />)}
+              {props => (<RestaurantTabNavigator {...props} basketSize={basketSize} activeOrder={activeOrder} restaurant={restaurant} />)}
             </RootStack.Screen>
           )}
   </RootStack.Navigator>

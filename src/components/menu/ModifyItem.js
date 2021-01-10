@@ -39,11 +39,11 @@ const ModifyItem = (props) => {
           <View style={styles.subHeader}>
             <View style={styles.quantityWrapper}>
               <View>
-                <IconButton name="minus" size={24} onPress={() => quantity > 1 && setQuantity(quantity - 1)} />
+                <IconButton name="minus" size={18} onPress={() => quantity > 1 && setQuantity(quantity - 1)} />
               </View>
-              <Title style={{ marginHorizontal: 8 }} type="h5">{quantity} Quantity</Title>
+              <Title style={{ marginHorizontal: 8 }} type="h6">{quantity} Quantity</Title>
               <View>
-                <IconButton name="plus" size={24} onPress={() => quantity < 10 && setQuantity(quantity + 1)} />
+                <IconButton name="plus" size={18} onPress={() => quantity < 10 && setQuantity(quantity + 1)} />
               </View>
             </View>
             <View style={styles.priceWrapper}>
@@ -55,7 +55,7 @@ const ModifyItem = (props) => {
         <View style={styles.body}>
           {
             options && options.split(';').map(m => (
-              <View style={styles.setting}>
+              <View key={m} style={styles.setting}>
                 <CheckBox value={meta[m]} onValueChange={(v) => setMeta({ ...meta, [m]: v })} />
                 <Text style={{ textTransform: 'capitalize' }}>{m}</Text>
               </View>

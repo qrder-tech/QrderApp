@@ -51,9 +51,51 @@ export async function getUserMe() {
   return middleware(true, makeRequestAuth('get', '/consumer/me'));
 }
 
-// GET:/user/orders
-export async function getUserOrders() {
-  return middleware(true, makeRequestAuth('get', '/consumer/orders'));
+// POST:/user/me
+export async function postUserMe(data) {
+  const { name, surname, email, phoneNumber, username, password } = data;
+  return middleware(true, makeRequestAuth('post', '/consumer/me'), {
+    name,
+    surname,
+    email,
+    phoneNumber,
+    username,
+    password,
+  });
+}
+
+// POST:/user/wallet
+export async function addBalance(data) {
+  const { amount } = data;
+  return middleware(true, makeRequestAuth('post', '/consumer/wallet', {
+    amount
+  }));
+}
+
+// GET:/user/offers
+export async function getOffers() {
+  return middleware(true, makeRequestAuth('get', '/consumer/offers'));
+}
+
+// GET:/user/favourites
+export async function getFavourites() {
+  return middleware(true, makeRequestAuth('get', '/consumer/favourites'));
+}
+
+// POST:/user/favourites
+export async function addToFavourites(data) {
+  const { restaurantUuid } = data;
+  return middleware(true, makeRequestAuth('post', '/consumer/favourites', {
+    restaurantUuid
+  }));
+}
+
+// DELETE:/user/favourites
+export async function removeFromFavourites(data) {
+  const { restaurantUuid } = data;
+  return middleware(true, makeRequestAuth('delete', '/consumer/favourites', {
+    restaurantUuid
+  }));
 }
 
 // GET:/restaurant?uuid=
@@ -61,6 +103,11 @@ export async function getRestaurantUuid(data) {
   const { uuid } = data;
 
   return makeRequestAuth('get', '/restaurant?uuid='.concat(uuid));
+}
+
+// GET:/order/all
+export async function getOrderAll(scope = 'all') {
+  return middleware(true, makeRequestAuth('get', '/order/all?scope='.concat(scope)));
 }
 
 // GET:/order

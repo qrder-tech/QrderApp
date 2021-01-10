@@ -19,11 +19,11 @@ const NavigationItem = (props) => {
       onPress={callback}
     >
       <View style={styles.iconWrapper}>
-        <Icon name={iconName} color={theme.SECONDARY_COLOR} size={24} />
+        <Icon name={iconName} color={theme.SECONDARY_COLOR} size={20} />
       </View>
 
       <View style={styles.titleWrapper}>
-        <Title type="h5">{title}</Title>
+        <Title type="h6">{title}</Title>
       </View>
     </TouchableOpacity>
   );
@@ -32,10 +32,10 @@ const NavigationItem = (props) => {
 const styles = StyleSheet.create({
   wrapper: {
     width: '100%',
-    height: 74,
+    // height: 74,
     flexDirection: 'row',
     backgroundColor: 'white',
-    paddingVertical: 8,
+    paddingVertical: 18,
     paddingHorizontal: 16,
     borderBottomColor: theme.OUTLINE_COLOR,
     borderBottomWidth: 1,

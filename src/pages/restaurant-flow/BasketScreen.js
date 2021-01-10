@@ -5,6 +5,7 @@ import { DefaultLayout } from '#/layouts';
 import { Button, Card, Collapse, Footer, BasketItem, OrderItem, Title } from '#/components';
 import theme from '#/styles/theme.style';
 
+import mq from '#/lib/clients/mqtt';
 import { getOrder, postOrder } from '#/lib/actions';
 import { RestaurantContext } from '#/lib/contexts';
 
@@ -44,6 +45,15 @@ class BasketScreen extends React.Component {
   componentDidMount() {
   }
 
+  _subscribeToOrderTopic = ({ uuid, restaurantUuid }) => {
+    mq.client.subscribe(`restaurant/${restaurantUuid}/${uuid}`, (err) => {
+      if (err) {
+        console.log('[error]:', err);
+        return;
+      }
+    });
+  }
+
   _getOrder = () => {
     const { savedOrder } = this.state;
 
@@ -52,23 +62,35 @@ class BasketScreen extends React.Component {
     }
 
     getOrder({ uuid: savedOrder }).then(payload => {
-      this.setState({ order: payload });
+      if (payload && payload.status !== 'paid') {
+        this.setState({ order: payload });
+      } else {
+        this.setState({ savedOrder: null });
+        const { deleteSavedOrder } = this.context;
+        deleteSavedOrder();
+      }
     }).catch(err => {
       console.warn("err:", err);
     });
   }
 
   _order = () => {
-    this.setState({ loading: true });
     const { basket, order } = this.state;
+
+    if (!basket || basket.length === 0) {
+      return;
+    }
+
+    this.setState({ loading: false });
+
     postOrder(basket, order.uuid).then(payload => {
-      const { saveOrder } = this.context;
-      this.setState({ savedOrder: payload.uuid });
+      const { saveOrder, emptyBasket } = this.context;
       saveOrder(payload.uuid);
+      this.setState({ savedOrder: payload.uuid, basket: null, loading: false });
       this._getOrder();
-      this.setState({ basket: null, loading: false });
-      const { emptyBasket } = this.context;
       emptyBasket();
+      mq.client.publish(`restaurant/${payload.restaurantUuid}`, "order");
+      this._subscribeToOrderTopic(payload);
     }).catch(err => {
       console.warn("err:", err);
     });
@@ -84,8 +106,19 @@ class BasketScreen extends React.Component {
     updateBasket(temp);
   }
 
+  _leaveRestaurant = () => {
+    const { basket, savedOrder } = this.state;
+
+    if (savedOrder || (basket && basket.length > 0)) {
+      return;
+    }
+
+    const { leaveRestaurant } = this.context;
+    leaveRestaurant();
+  }
+
   render() {
-    const { basket, order, loading } = this.state;
+    const { basket, order, loading, savedOrder } = this.state;
     return (
       <DefaultLayout type="restaurant" loading={loading}>
         <ScrollView>
@@ -97,7 +130,7 @@ class BasketScreen extends React.Component {
                 ))
               }
               <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', paddingRight: 18, marginBottom: 4 }}>
-                <Title type="h5" style={{ fontSize: 16, color: theme.PRIMARY_COLOR }}>Total: {order.totalPrice} ₺</Title>
+                <Title type="h5" style={{ fontSize: 16, color: theme.PRIMARY_COLOR }}>Total Price: {order.totalPrice} ₺</Title>
               </View>
             </Collapse>
           )}
@@ -110,12 +143,26 @@ class BasketScreen extends React.Component {
           </View>
         </ScrollView>
         <Footer>
-          <Button
-            onPress={() => this._order()}
-            style={styles.button}
-            color={theme.PRIMARY_BUTTON_COLOR}
-            title="Order"
-          />
+          {
+            (savedOrder || (basket && basket.length > 0)) ? (
+              (basket && basket.length > 0) && (
+                <Button
+                  onPress={() => this._order()}
+                  style={styles.button}
+                  color={theme.PRIMARY_BUTTON_COLOR}
+                  title="Order"
+                />
+              )
+            ) : (
+                <Button
+                  onPress={() => this._leaveRestaurant()}
+                  style={styles.button}
+                  color={theme.PRIMARY_BUTTON_COLOR}
+                  title="Leave Restaurant"
+                />
+              )
+          }
+
         </Footer>
       </DefaultLayout>
     );

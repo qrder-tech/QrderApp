@@ -1,73 +1,43 @@
 import React from 'react';
 import { StyleSheet, View, ScrollView } from 'react-native';
+import { SliderBox } from 'react-native-image-slider-box';
 
 import { DefaultLayout } from '#/layouts';
 import { PreviousOrderItem, RestaurantItem, SlideBox, Title } from '#/components';
 import theme from '#/styles/theme.style';
 
-import { getUserMe, getUserOrders } from '#/lib/actions';
+import { getUserMe, getOrderAll, getOffers, getFavourites } from '#/lib/actions';
 import { RestaurantContext } from '#/lib/contexts';
 
 import AsyncStorage from '@react-native-community/async-storage';
 import mq from '#/lib/clients/mqtt';
-
-const DUMMY_ORDER = [{
-  "uuid": "01b95b8e-da8f-441b-af0c-835aea23f5d2",
-  "total_items": 5,
-  "total_price": 106,
-  "items": [],
-  "isPaid": true,
-  "restaurantUuid": "be09711a-c5b9-4bda-a464-76ca3d9ef848",
-  "restaurant": {
-    name: "Bilkent Kebab",
-    rank: 9.5,
-  },
-  "userUuid": "3d9b7b60-741f-45aa-b94a-68daa30b7ea6",
-  "tableUuid": "af92bacf-a01a-4903-99d6-2887359c1d43",
-  "createdAt": "2020-12-15T09:29:57.000Z",
-  "updatedAt": "2020-12-15T09:29:57.000Z"
-}, {
-  "uuid": "01b95b8e-da8f-441b-af0c-835aea23f5d2",
-  "total_items": 5,
-  "total_price": 106,
-  "items": [],
-  "isPaid": true,
-  "restaurantUuid": "be09711a-c5b9-4bda-a464-76ca3d9ef848",
-  "restaurant": {
-    name: "Coffee Take Away",
-    rank: 8.7
-  },
-  "userUuid": "3d9b7b60-741f-45aa-b94a-68daa30b7ea6",
-  "tableUuid": "af92bacf-a01a-4903-99d6-2887359c1d43",
-  "createdAt": "2020-12-11T09:29:57.000Z",
-  "updatedAt": "2020-12-11T09:29:57.000Z"
-}];
-
-const DUMMY_FAVOURITES = [{
-  name: "Coffee Take Away",
-  rank: 8.7,
-  img: "https://img.freepik.com/free-vector/coffee-shop-badge-vintage-style_1176-95.jpg?size=626&ext=jpg",
-}, {
-  name: "Bilkent Kebab",
-  rank: 9.5,
-  img: "https://media.istockphoto.com/vectors/doner-kebab-logo-templates-vector-id954909832?k=6&m=954909832&s=170667a&w=0&h=p6TolMJV5CRTBv0LmUWjiGjI0GnZcY1vR4VB5_7KY9M="
-}, {
-  name: "Waffle Station",
-  rank: 7.2,
-  img: "https://bpando.org//wp-content/uploads/Waffee-Logo-A-Friend-Of-Mine-on-BPO.jpg"
-},];
 
 class HomeScreen extends React.Component {
   static contextType = RestaurantContext;
 
   constructor(props) {
     super(props);
-    this.state = { loading: true, user: null, orders: DUMMY_ORDER, favourites: DUMMY_FAVOURITES };
+    this.state = {
+      favourites: null,
+      loading: true,
+      offers: null,
+      orders: null,
+      user: null,
+    };
+
+    const { navigation } = this.props;
+
+    navigation.addListener('focus', () => {
+      // this._getUser();
+      // this._getOffers();
+    });
   }
 
   componentDidMount() {
     this._getUser();
-    // this._getUserOrders();
+    this._getOffers();
+    this._getUserOrders();
+    this._getFavourites();
   }
 
   _getUser = () => {
@@ -104,31 +74,58 @@ class HomeScreen extends React.Component {
   }
 
   _getUserOrders = () => {
-    getUserOrders().then(payload => {
-      this.setState({ orders: payload.orders });
+    getOrderAll('paid').then(payload => {
+      this.setState({ orders: payload });
+    }).catch(err => {
+      console.warn(err);
+    });
+  }
+
+  _getOffers = () => {
+    getOffers().then(payload => {
+      this.setState({ offers: payload });
+    }).catch(err => {
+      console.warn(err);
+    });
+  }
+
+  _getFavourites = () => {
+    getFavourites().then(payload => {
+      this.setState({ favourites: payload });
     }).catch(err => {
       console.warn(err);
     });
   }
 
   render() {
-    const { loading, orders, favourites } = this.state;
+    const { favourites, loading, offers, orders } = this.state;
     return (
       <DefaultLayout loading={loading} type="restaurant">
-        <View style={styles.banners}>
-          <SlideBox />
-        </View>
         <ScrollView>
+          <View style={styles.banners}>
+            {offers && (<SliderBox
+              images={offers.map(offer => offer.img)}
+              onCurrentImagePressed={
+                index => console.warn(`image ${index} pressed`)
+              }
+              dotColor={theme.PRIMARY_COLOR}
+              inactiveDotColor={theme.OUTLINE_COLOR}
+              paginationBoxVerticalPadding={20}
+              sliderBoxHeight={275}
+              autoplay
+              circleLoop
+            />)}
+          </View>
           <View style={styles.orderHistory}>
             <Title type="h4" style={{ textAlign: 'left', borderBottomWidth: 1, borderColor: theme.SECONDARY_COLOR, marginBottom: 8 }}>Previous Orders</Title>
-            {orders && orders.map(order => order.isPaid && (
-              <PreviousOrderItem data={order} />
+            {orders && orders.slice(0, 2).map(order => (
+              <PreviousOrderItem key={order.uuid} data={order} />
             ))}
           </View>
           <View style={styles.favorites}>
             <Title type="h4" style={{ textAlign: 'left', borderBottomWidth: 1, borderColor: theme.SECONDARY_COLOR, marginBottom: 8 }}>Favourites</Title>
-            {favourites && favourites.map(restaurant => (
-              <RestaurantItem data={restaurant} />
+            {favourites && favourites.slice(0, 2).map(restaurant => (
+              <RestaurantItem key={restaurant.uuid} data={restaurant} />
             ))}
           </View>
         </ScrollView>
@@ -139,8 +136,7 @@ class HomeScreen extends React.Component {
 
 const styles = StyleSheet.create({
   banners: {
-    height: '40%',
-    marginBottom: 8,
+    marginBottom: 16,
   },
   orderHistory: {
     flex: 2,

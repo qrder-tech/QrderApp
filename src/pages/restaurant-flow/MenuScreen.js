@@ -20,6 +20,8 @@ import { RestaurantContext } from '#/lib/contexts';
 import { getData } from '#/lib/utils';
 import { MenuItem } from '#/components/index';
 
+// import mq from '#/lib/clients/mqtt';
+
 class MenuScreen extends React.Component {
   static contextType = RestaurantContext;
 
@@ -51,6 +53,9 @@ class MenuScreen extends React.Component {
         this.setState({ restaurant: payload });
         const { navigation } = this.props;
         navigation.setOptions({ title: payload.name });
+
+        const { saveRestaurantInfo } = this.context;
+        saveRestaurantInfo(payload);
       })
       .catch((err) => {
         console.warn(err);

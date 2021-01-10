@@ -31,10 +31,16 @@ export const restaurantReducer = (prevState, action) => {
         qr: action.qr,
         basketSize: 0,
       };
+    case 'SAVE_RESTAURANT':
+      return {
+        ...prevState,
+        restaurant: action.restaurant
+      };
     case 'PAYMENT_DONE':
       return {
         ...prevState,
         qr: null,
+        restaurant: null,
         basketSize: 0,
         activeOrder: false,
       };
@@ -42,6 +48,7 @@ export const restaurantReducer = (prevState, action) => {
       return {
         ...prevState,
         qr: null,
+        restaurant: null,
         basketSize: 0,
         activeOrder: false,
       };

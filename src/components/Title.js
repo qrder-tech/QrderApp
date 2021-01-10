@@ -28,6 +28,9 @@ const propStyles = {
   },
   h5: {
     fontSize: 20,
+  },
+  h6: {
+    fontSize: 16,
   }
 };
 
@@ -47,7 +50,7 @@ Title.defaultProps = {
 };
 
 Title.propTypes = {
-  type: PropTypes.oneOf(['h1', 'h2', 'h3', 'h4', 'h5']),
+  type: PropTypes.oneOf(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']),
 };
 
 export default Title;

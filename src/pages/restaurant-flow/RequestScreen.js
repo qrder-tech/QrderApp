@@ -5,10 +5,9 @@ import { DefaultLayout } from '#/layouts';
 import { Button, Collapse, Footer, BasketItem, OrderItem, Title } from '#/components';
 import theme from '#/styles/theme.style';
 
+import mq from '#/lib/clients/mqtt';
 import { getOrder } from '#/lib/actions';
 import { RestaurantContext } from '#/lib/contexts';
-
-import mq from '#/lib/clients/mqtt';
 
 class RequestScreen extends React.Component {
   static contextType = RestaurantContext;
@@ -16,6 +15,7 @@ class RequestScreen extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      loading: true,
       order: null,
       savedOrder: null,
     };
@@ -45,7 +45,10 @@ class RequestScreen extends React.Component {
     }
 
     getOrder({ uuid: savedOrder }).then(payload => {
-      this.setState({ order: payload });
+      this.setState({
+        loading: false,
+        order: payload
+      });
     }).catch(err => {
       console.warn("err:", err);
     });
@@ -58,7 +61,7 @@ class RequestScreen extends React.Component {
       return;
     }
 
-    mq.client.publish(`restaurant/${order.restaurantUuid}/table/${order.tableUuid}`, "request:payment");
+    mq.client.publish(`restaurant/${order.restaurantUuid}/${order.tableUuid}`, "service:payment");
 
     Alert.alert(
       "We have received your request!",
@@ -82,7 +85,7 @@ class RequestScreen extends React.Component {
       return;
     }
 
-    mq.client.publish(`restaurant/${order.restaurantUuid}/table/${order.tableUuid}`, "request:waiter");
+    mq.client.publish(`restaurant/${order.restaurantUuid}/${order.tableUuid}`, "service:waiter");
 
     Alert.alert(
       "We have received your request!",
@@ -95,9 +98,9 @@ class RequestScreen extends React.Component {
   }
 
   render() {
-    const { order } = this.state;
+    const { loading, order } = this.state;
     return (
-      <DefaultLayout type="restaurant">
+      <DefaultLayout type="restaurant" loading={loading}>
         <ScrollView>
           <View>
             {
@@ -106,29 +109,39 @@ class RequestScreen extends React.Component {
               ))
             }
             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', paddingRight: 18, marginBottom: 4, backgroundColor: theme.SECONDARY_COLOR }}>
-              <Title type="h5" style={{ fontSize: 16, color: theme.PRIMARY_COLOR }}>Total: {order ? order.totalPrice : 0} ₺</Title>
+              <Title type="h5" style={{ fontSize: 16, color: theme.PRIMARY_COLOR }}>Total Price: {order ? order.totalPrice : 0} ₺</Title>
             </View>
           </View>
         </ScrollView>
         <Footer style={{ justifyContent: 'space-between', paddingHorizontal: 16 }}>
-          <Button
-            onPress={() => this._requestAccount()}
-            style={styles.button}
-            title="Request Payment"
-            size="small"
-            type="secondary"
-          />
+          {
+            order && order.Restaurant.serviceType !== 'self' && (
+              <Button
+                onPress={() => this._requestAccount()}
+                style={styles.button}
+                title="Request Payment"
+                size="small"
+                type="secondary"
+              />
+            )
+          }
+
           <Button
             onPress={() => this._onlinePayment()}
             style={styles.button}
             title="Online Payment"
           />
-          <Button
-            onPress={() => this._callWaiter()}
-            style={styles.button}
-            title="Waiter / Waitress"
-            type="secondary"
-          />
+
+          {
+            order && order.Restaurant.serviceType !== 'self' && (
+              <Button
+                onPress={() => this._callWaiter()}
+                style={styles.button}
+                title="Waiter / Waitress"
+                type="secondary"
+              />
+            )
+          }
         </Footer>
       </DefaultLayout>
     );

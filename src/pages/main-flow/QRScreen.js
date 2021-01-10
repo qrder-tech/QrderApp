@@ -17,6 +17,12 @@ import theme from '#/styles/theme.style';
 
 import { RestaurantContext } from '#/lib/contexts';
 
+const DUMMY_QR_DATA = {
+  restaurantUuid: '56bc78e9-05fd-454c-99ad-18d479aa8ad9',
+  restaurantUuid: 'b239690e-dfa1-4c6b-9e19-45c182d2b66b',
+  tableUuid: '005dd3a6-a892-4473-94eb-87fdfc167e5d',
+};
+
 class QRScreen extends React.Component {
   static contextType = RestaurantContext;
 
@@ -27,14 +33,19 @@ class QRScreen extends React.Component {
 
   componentDidMount() {
     const { readQr } = this.context;
-    readQr({
-      restaurantUuid: '56bc78e9-05fd-454c-99ad-18d479aa8ad9',
-      tableUuid: '005dd3a6-a892-4473-94eb-87fdfc167e5d',
-    });
+    readQr(DUMMY_QR_DATA);
   }
 
   _onRead = (payload) => {
-    // console.warn(payload.data);
+    const qr = payload.data.split(':');
+
+    const data = {
+      restaurantUuid: qr[0],
+      tableUuid: qr[1]
+    };
+
+    const { readQr } = this.context;
+    readQr(data);
   };
 
   render() {

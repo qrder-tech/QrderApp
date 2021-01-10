@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { DefaultLayout } from '#/layouts';
 import { Button, Footer, Header, Image, Text, Input } from '#/components';
 
-import { getUserMe } from '#/lib/actions';
+import { getUserMe, postUserMe } from '#/lib/actions';
 import { AuthContext } from '#/lib/contexts';
 
 class SettingsScreen extends React.Component {
@@ -27,7 +27,10 @@ class SettingsScreen extends React.Component {
   _getUser = () => {
     getUserMe()
       .then((payload) => {
-        this.setState({ loading: false, user: payload });
+        this.setState({
+          loading: false,
+          user: payload
+        });
       })
       .catch((err) => {
         console.warn(err);
@@ -66,6 +69,13 @@ class SettingsScreen extends React.Component {
             style={styles.input}
           />
           <Input
+            iconName="envelope"
+            name="phoneNumber"
+            placeholder="Phone Number"
+            value={user && user.phoneNumber}
+            style={styles.input}
+          />
+          <Input
             iconName="user-alt"
             name="username"
             placeholder="Username"
@@ -76,7 +86,7 @@ class SettingsScreen extends React.Component {
             iconName="key"
             name="password"
             placeholder="Password"
-            value={"dummypassword"}
+            value={user && user.password}
             style={styles.input}
             secureTextEntry={true}
           />
@@ -96,12 +106,13 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flex: 1,
     width: '100%',
+    justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: '15%',
     // backgroundColor: '#959896'
   },
   input: {
-    marginTop: 48,
+    marginVertical: 14,
     // backgroundColor: 'rgba(70, 70, 70, 0.2)'
   },
 });

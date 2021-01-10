@@ -1,8 +1,8 @@
 import mqtt from 'mqtt/dist/mqtt';
 
 import config from '#/config';
+import { getData, displayNotification } from '#/lib/utils';
 
-import { getData } from '../utils';
 
 const mq = {};
 
@@ -39,6 +39,7 @@ mq.init = async () => {
 
   mq.client.on('message', (topic, message) => {
     console.warn(`[${topic}]: ${message.toString()}`);
+    displayNotification(topic, message);
   });
 };
 

@@ -38,6 +38,7 @@ class OtherScreen extends React.Component {
           <NavigationItem iconName="history" title="Previous Orders" callback={() => this._goTo("Previous Orders")} />
           <NavigationItem iconName="star" title="Favourites" callback={() => this._goTo("Favourites")} />
           <NavigationItem iconName="search" title="Nearby Restaurants" callback={() => this._goTo("Nearby Restaurants")} />
+          <NavigationItem iconName="wallet" title="Wallet" callback={() => this._goTo("Wallet")} />
         </View>
         <Footer>
           <Button

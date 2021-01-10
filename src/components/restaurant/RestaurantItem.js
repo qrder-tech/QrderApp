@@ -8,24 +8,17 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome5';
-
-import moment from 'moment';
-
-import Card from '../Card';
 import IconButton from '../IconButton';
+
 
 import theme from '../../styles/theme.style';
 
 const RestaurantItem = (props) => {
-  const { data } = props;
-  const { name, rank, img } = data;
+  const { data, deleteCallback } = props;
+  const { name, img } = data;
 
   return (
     <View style={[styles.wrapper, theme.SHADOW]}>
-      <View style={styles.rankWrapper}>
-        <Text style={[styles.text, styles.rank]}>{rank}</Text>
-      </View>
       <View style={[styles.imageWrapper]}>
         <Image
           style={styles.image}
@@ -37,6 +30,13 @@ const RestaurantItem = (props) => {
           <Text style={[styles.text, styles.title]}>{name}</Text>
         </View>
       </View>
+      {
+        deleteCallback && (
+          <View style={styles.iconWrapper}>
+            <IconButton name="times" color="tomato" size={24} onPress={deleteCallback} />
+          </View>
+        )
+      }
     </View>
   );
 };
@@ -51,22 +51,11 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
   },
-  rankWrapper: {
-    justifyContent: 'center',
-  },
-  rank: {
-    textAlign: 'center',
-    backgroundColor: '#00a31b',
-    color: 'white',
-    padding: 8,
-    fontWeight: 'bold',
-    borderRadius: 9999,
-  },
   imageWrapper: {
     height: '100%',
     aspectRatio: 1,
     borderRadius: 9999,
-    marginHorizontal: 16,
+    marginRight: 16,
     backgroundColor: 'grey'
   },
   image: {
@@ -81,13 +70,16 @@ const styles = StyleSheet.create({
   },
   text: {
     textAlign: 'center',
-    fontSize: 16,
+    fontSize: 14,
     textTransform: 'capitalize',
   },
   title: {
     fontWeight: 'bold',
     marginTop: 0,
   },
+  iconWrapper: {
+    justifyContent: 'center',
+  }
 });
 
 export default RestaurantItem;

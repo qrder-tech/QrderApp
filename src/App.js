@@ -28,6 +28,7 @@ function App() {
   const [stateRestaurant, dispatchRestaurant] = React.useReducer(restaurantReducer, {
     loading: true,
     qr: null,
+    restaurant: null,
     basketSize: 0,
     activeOrder: false,
   });
@@ -65,6 +66,7 @@ function App() {
             token={stateAuth.token}
             user={stateAuth.user}
             qr={stateRestaurant.qr}
+            restaurant={stateRestaurant.restaurant}
             basketSize={stateRestaurant.basketSize}
             activeOrder={stateRestaurant.activeOrder}
           />

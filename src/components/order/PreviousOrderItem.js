@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Button,
   Image,
@@ -12,38 +12,58 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 
 import moment from 'moment';
 
-import Card from '../Card';
-import IconButton from '../IconButton';
-
 import theme from '../../styles/theme.style';
 
 const PreviousOrderItem = (props) => {
+  const [collapsed, setCollapse] = useState(false);
+  const iconName = collapsed ? "chevron-up" : "chevron-down";
+
   const { data } = props;
-  const { total_price, restaurant, updatedAt } = data;
-  const { name, rank } = restaurant;
+  const { Restaurant, updatedAt, totalPrice, Items } = data;
 
   return (
-    <View style={[styles.wrapper, theme.SHADOW]}>
-      <View style={styles.rankWrapper}>
-        <Text style={[styles.text, styles.rank]}>{rank}</Text>
-      </View>
-      <View style={styles.body}>
-        <View style={{ flex: 1, paddingLeft: 16, justifyContent: 'center', alignItems: 'flex-start' }}>
-          <Text style={[styles.text, styles.title]}>{name}</Text>
+    <TouchableOpacity activeOpacity={0.8} onPress={() => setCollapse(!collapsed)} style={styles.touchable}>
+      <View style={[styles.wrapper, theme.SHADOW]}>
+        <View style={styles.rankWrapper}>
+          <Icon name={iconName} color={theme.PRIMARY_COLOR} size={18} />
         </View>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'flex-end' }}>
-          <Text style={styles.text}>{moment(updatedAt).fromNow()}</Text>
+        <View style={styles.body}>
+          <View style={{ flex: 1, paddingLeft: 16, justifyContent: 'center', alignItems: 'flex-start' }}>
+            <Text style={[styles.text, styles.title]}>{Restaurant && Restaurant.name}</Text>
+          </View>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'flex-end' }}>
+            <Text style={[styles.text, { fontSize: 12 }]}>{moment(updatedAt).fromNow()}</Text>
+          </View>
         </View>
       </View>
-    </View>
+      {
+        collapsed && (
+          <View style={styles.collapeWrapper}>
+            {
+              Items && Items.map(item => (
+                <View key={item.OrderItems.orderUuid + '_' + item.OrderItems.itemUuid + '_' + item.OrderItems.options} style={styles.OrderItems}>
+                  <Text style={[styles.OrderItemsText, styles.OrderItemsQuantity]}>{item.OrderItems.quantity}</Text>
+                  <Text style={[styles.OrderItemsText, styles.OrderItemsName]}>{item.name}</Text>
+                  <Text style={[styles.OrderItemsText, styles.OrderItemsOptions]}>{item.OrderItems.options.split(';').join(', ')}</Text>
+                  <Text style={[styles.OrderItemsText, styles.OrderItemsPrice]}>{item.OrderItems.quantity * item.price} ₺</Text>
+                </View>
+              ))
+            }
+            <Text style={styles.collapseTotalPrice}>Total Price: {totalPrice} ₺</Text>
+          </View>
+        )
+      }
+    </TouchableOpacity >
   );
 };
 
 const styles = StyleSheet.create({
+  touchable: {
+    marginBottom: 8,
+  },
   wrapper: {
     width: '100%',
     height: 74,
-    marginBottom: 8,
     flexDirection: 'row',
     backgroundColor: 'white',
     paddingVertical: 8,
@@ -79,13 +99,46 @@ const styles = StyleSheet.create({
   },
   text: {
     textAlign: 'center',
-    fontSize: 16,
+    fontSize: 14,
     textTransform: 'capitalize',
   },
   title: {
     fontWeight: 'bold',
     marginTop: 0,
   },
+  collapeWrapper: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: 'whitesmoke',
+  },
+  OrderItems: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  OrderItemsText: {
+    textTransform: 'capitalize',
+    fontSize: 12,
+  },
+  OrderItemsQuantity: {
+    flex: 1,
+  },
+  OrderItemsName: {
+    flex: 2,
+  },
+  OrderItemsOptions: {
+    flex: 3,
+    color: theme.OUTLINE_COLOR,
+  },
+  OrderItemsPrice: {
+    flex: 1,
+    textAlign: 'right',
+  },
+  collapseTotalPrice: {
+    borderTopWidth: 1,
+    paddingTop: 4,
+    alignSelf: 'flex-end',
+  }
 });
 
 export default PreviousOrderItem;

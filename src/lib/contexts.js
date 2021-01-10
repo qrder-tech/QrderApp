@@ -1,11 +1,13 @@
 import React from 'react';
 import AsyncStorage from '@react-native-community/async-storage';
 
+import mq from '#/lib/clients/mqtt';
 import { postUserLogin } from './actions';
 
 export const AuthContext = React.createContext();
 export const RestaurantContext = React.createContext();
 export const ThemeContext = React.createContext();
+
 
 export const AuthProvider = (props) => {
   const { children, dispatch } = props;
@@ -54,12 +56,16 @@ export const RestaurantProvider = (props) => {
         await AsyncStorage.setItem('qr', JSON.stringify(data));
         await AsyncStorage.removeItem('basket');
         dispatch({ type: 'READ_QR', qr: data });
-        // TODO: send rest request in here, instead of MenuScreen
+        mq.client.publish(`restaurant/${data.restaurantUuid}`, "table");
+      },
+      saveRestaurantInfo: (data) => {
+        dispatch({ type: 'SAVE_RESTAURANT', restaurant: data });
       },
       leaveRestaurant: async () => {
         const order = await AsyncStorage.getItem('order');
 
         if (!order) {
+          await AsyncStorage.removeItem('qr');
           dispatch({ type: 'LEAVE_RESTAURANT' });
         }
       },
@@ -89,7 +95,10 @@ export const RestaurantProvider = (props) => {
       },
       getSavedOrder: async () => {
         return await AsyncStorage.getItem('order');
-      }
+      },
+      deleteSavedOrder: async () => {
+        return await AsyncStorage.removeItem('order');
+      },
     }),
     [],
   );

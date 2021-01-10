@@ -9,6 +9,7 @@ import OrderHistoryScreen from './main-flow/OrderHistoryScreen';
 import OtherScreen from './main-flow/OtherScreen';
 import QRScreen from './main-flow/QRScreen';
 import SettingsScreen from './main-flow/SettingsScreen';
+import WalletScreen from './main-flow/WalletScreen';
 
 import BasketScreen from './restaurant-flow/BasketScreen';
 import ItemDetailScreen from './restaurant-flow/ItemDetailScreen';
@@ -32,6 +33,7 @@ const MAIN_FLOW = {
   OtherScreen,
   QRScreen,
   SettingsScreen,
+  WalletScreen,
 };
 
 const RESTAURANT_FLOW = {
