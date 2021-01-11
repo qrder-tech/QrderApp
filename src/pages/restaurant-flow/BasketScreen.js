@@ -6,8 +6,9 @@ import { Button, Card, Collapse, Footer, BasketItem, OrderItem, Title } from '#/
 import theme from '#/styles/theme.style';
 
 import mq from '#/lib/clients/mqtt';
-import { getOrder, postOrder } from '#/lib/actions';
+import { getOrder, postOrder, getRestaurantUuid, addBalance } from '#/lib/actions';
 import { RestaurantContext } from '#/lib/contexts';
+import { getData } from '#/lib/utils';
 
 class BasketScreen extends React.Component {
   static contextType = RestaurantContext;
@@ -21,7 +22,9 @@ class BasketScreen extends React.Component {
       },
       savedOrder: null,
       loading: false,
+      restaurant: null,
     };
+
     const { navigation } = this.props;
 
     navigation.addListener('focus', () => {
@@ -43,7 +46,21 @@ class BasketScreen extends React.Component {
   }
 
   componentDidMount() {
+    this._getRestaurantInfo();
   }
+
+  _getRestaurantInfo = async () => {
+    const qr = JSON.parse(await getData('qr'));
+
+    getRestaurantUuid({ uuid: qr.restaurantUuid })
+      .then((payload) => {
+        this.setState({ restaurant: { serviceType: payload.serviceType } });
+      })
+      .catch((err) => {
+        console.warn(err);
+      });
+  };
+
 
   _subscribeToOrderTopic = ({ uuid, restaurantUuid }) => {
     mq.client.subscribe(`restaurant/${restaurantUuid}/${uuid}`, (err) => {
@@ -65,12 +82,15 @@ class BasketScreen extends React.Component {
       if (payload && payload.status !== 'paid') {
         this.setState({ order: payload });
       } else {
-        this.setState({ savedOrder: null });
+        this.setState({ savedOrder: null, order: { uuid: null } });
         const { deleteSavedOrder } = this.context;
         deleteSavedOrder();
       }
     }).catch(err => {
       console.warn("err:", err);
+      this.setState({ savedOrder: null, order: { uuid: null } });
+      const { deleteSavedOrder } = this.context;
+      deleteSavedOrder();
     });
   }
 
@@ -117,8 +137,44 @@ class BasketScreen extends React.Component {
     leaveRestaurant();
   }
 
+  _fakePaymentCallback = (paymentType, totalPrice) => {
+    const { basket, order } = this.state;
+
+    if (!basket || basket.length === 0) {
+      return;
+    }
+
+    this.setState({ loading: false });
+
+    postOrder(basket, order.uuid).then(payload => {
+      const { saveOrder, emptyBasket } = this.context;
+      saveOrder(payload.uuid);
+      this.setState({ savedOrder: payload.uuid, basket: null, loading: false });
+      this._getOrder();
+      emptyBasket();
+      mq.client.publish(`restaurant/${payload.restaurantUuid}`, "order");
+      this._subscribeToOrderTopic(payload);
+
+      if (!paymentType) {
+        addBalance({ amount: (totalPrice * -1) }).then((payload) => {
+
+        }).catch(err => {
+          console.warn("err:", err);
+        });
+      }
+    }).catch(err => {
+      console.warn("err:", err);
+    });
+  }
+
+  _fakePayment = () => {
+    const { navigation } = this.props;
+    const { basket } = this.state;
+    navigation.navigate("Payment", { basket, isFake: true, fakePaymentCallback: (paymentType, totalPrice) => this._fakePaymentCallback(paymentType, totalPrice) });
+  }
+
   render() {
-    const { basket, order, loading, savedOrder } = this.state;
+    const { basket, order, loading, savedOrder, restaurant } = this.state;
     return (
       <DefaultLayout type="restaurant" loading={loading}>
         <ScrollView>
@@ -129,8 +185,9 @@ class BasketScreen extends React.Component {
                   <OrderItem data={item} />
                 ))
               }
-              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', paddingRight: 18, marginBottom: 4 }}>
-                <Title type="h5" style={{ fontSize: 16, color: theme.PRIMARY_COLOR }}>Total Price: {order.totalPrice} ₺</Title>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 18, marginBottom: 4 }}>
+                <Title type="h6" style={{ color: theme.PRIMARY_COLOR }}>Order No: {order.no}</Title>
+                <Title type="h6" style={{ color: theme.PRIMARY_COLOR }}>Total Price: {order.totalPrice} ₺</Title>
               </View>
             </Collapse>
           )}
@@ -146,12 +203,21 @@ class BasketScreen extends React.Component {
           {
             (savedOrder || (basket && basket.length > 0)) ? (
               (basket && basket.length > 0) && (
-                <Button
-                  onPress={() => this._order()}
-                  style={styles.button}
-                  color={theme.PRIMARY_BUTTON_COLOR}
-                  title="Order"
-                />
+                (restaurant && restaurant.serviceType === 'self') ? (
+                  <Button
+                    onPress={() => this._fakePayment()}
+                    style={styles.button}
+                    color={theme.PRIMARY_BUTTON_COLOR}
+                    title="Online Payment"
+                  />
+                ) : (
+                    <Button
+                      onPress={() => this._order()}
+                      style={styles.button}
+                      color={theme.PRIMARY_BUTTON_COLOR}
+                      title="Order"
+                    />
+                  )
               )
             ) : (
                 <Button

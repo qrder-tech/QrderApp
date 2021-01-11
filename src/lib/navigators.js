@@ -6,7 +6,7 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 
 import { AUTH_FLOW, MAIN_FLOW, RESTAURANT_FLOW, SplashScreen } from '../pages';
 
-import { HeaderTitle } from '#/components';
+import { HeaderTitle, RestaurantHeader } from '#/components';
 import theme from '#/styles/theme.style';
 
 const { LoginScreen, RegistrationScreen, WelcomeScreen } = AUTH_FLOW;
@@ -152,7 +152,7 @@ const OtherNavigator = () => (
 const RestaurantNavigator = () => (
   <RestaurantStack.Navigator
     screenOptions={{
-      headerTitleAlign: 'center',
+      // headerTitleAlign: 'center',
       headerTintColor: theme.SECONDARY_COLOR,
       headerStyle: {
         backgroundColor: theme.PRIMARY_COLOR,
@@ -160,10 +160,15 @@ const RestaurantNavigator = () => (
       },
       headerTitleStyle: {
         textTransform: 'capitalize',
-      }
+      },
+      headerLeft: null,
+      headerTitle: (props) => {
+        const { children } = props;
+        return (<RestaurantHeader restaurant={children} />)
+      },
+      headerRight: null
     }}>
     <RestaurantStack.Screen name="Menu" component={MenuScreen} />
-    <RestaurantStack.Screen name="Item Details" component={ItemDetailScreen} />
   </RestaurantStack.Navigator>
 );
 
@@ -181,6 +186,7 @@ const BasketNavigator = () => (
       }
     }}>
     <BasketStack.Screen name="Basket" component={BasketScreen} />
+    <BasketStack.Screen name="Payment" component={PaymentScreen} />
   </BasketStack.Navigator>
 );
 
@@ -225,7 +231,7 @@ const RestaurantTabNavigator = ({ basketSize, activeOrder, restaurant }) => (
     />
 
     {
-      activeOrder && <RestaurantTab.Screen name="Requests" component={RequestNavigator} />
+      (activeOrder && (restaurant && restaurant.serviceType !== 'self')) && <RestaurantTab.Screen name="Requests" component={RequestNavigator} />
     }
   </RestaurantTab.Navigator>
 );

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 
 import mq from '#/lib/clients/mqtt';
@@ -25,7 +26,14 @@ export const AuthProvider = (props) => {
             }
           })
           .catch((err) => {
-            console.warn(err.data);
+            Alert.alert(
+              "Login Failed",
+              err.data && err.data.msg,
+              [
+                { text: "OK" }
+              ],
+              { cancelable: true }
+            );
           });
       },
       signOut: async () => {
@@ -56,7 +64,7 @@ export const RestaurantProvider = (props) => {
         await AsyncStorage.setItem('qr', JSON.stringify(data));
         await AsyncStorage.removeItem('basket');
         dispatch({ type: 'READ_QR', qr: data });
-        mq.client.publish(`restaurant/${data.restaurantUuid}`, "table");
+        // mq.client.publish(`restaurant/${data.restaurantUuid}`, "table");
       },
       saveRestaurantInfo: (data) => {
         dispatch({ type: 'SAVE_RESTAURANT', restaurant: data });

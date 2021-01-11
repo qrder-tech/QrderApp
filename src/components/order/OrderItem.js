@@ -34,14 +34,14 @@ const OrderItem = (props) => {
       <View style={styles.body}>
         <View style={{ flex: 4, paddingRight: 8 }}>
           <Text style={[styles.text, styles.title]}>{name}</Text>
-          <Text style={[styles.text, styles.secondary]} numberOfLines={2}>
+          <Text style={[styles.text, styles.secondary]} numberOfLines={1}>
             {desc}
           </Text>
           <Text style={[styles.metadata]}>
             {options && options.split(';').join(", ")}
           </Text>
         </View>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'flex-end', paddingRight: 10 }}>
           <Text style={styles.text}>{quantity * price} ₺</Text>
         </View>
       </View>
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   },
   metadata: {
     color: theme.OUTLINE_COLOR,
-    textTransform: 'capitalize'
+    textTransform: 'capitalize',
   }
 });
 

@@ -33,7 +33,7 @@ const BasketItem = (props) => {
       <View style={styles.body}>
         <View style={{ flex: 4, paddingRight: 8 }}>
           <Text style={[styles.text, styles.title]}>{name}</Text>
-          <Text style={[styles.text, styles.secondary]} numberOfLines={2}>
+          <Text style={[styles.text, styles.secondary]} numberOfLines={1}>
             {desc}
           </Text>
           <Text style={[styles.metadata]}>
@@ -96,15 +96,16 @@ const styles = StyleSheet.create({
   title: {
     fontWeight: 'bold',
     marginTop: 0,
+    marginBottom: 4,
   },
   secondary: {
+    marginBottom: 4,
     fontSize: 12,
-    marginTop: 4,
     color: theme.PRIMARY_COLOR
   },
   metadata: {
     color: theme.OUTLINE_COLOR,
-    textTransform: 'capitalize'
+    textTransform: 'capitalize',
   }
 });
 

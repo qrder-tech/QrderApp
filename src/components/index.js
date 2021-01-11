@@ -24,6 +24,7 @@ import RestaurantItem from './restaurant/RestaurantItem';
 
 import HeaderTitle from './navigation/HeaderTitle';
 import NavigationItem from './navigation/NavigationItem';
+import RestaurantHeader from './navigation/RestaurantHeader';
 
 
 export {
@@ -49,4 +50,5 @@ export {
   RestaurantItem,
   HeaderTitle,
   NavigationItem,
+  RestaurantHeader,
 };

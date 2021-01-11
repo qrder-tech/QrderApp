@@ -20,18 +20,25 @@ import { RestaurantContext } from '#/lib/contexts';
 import { getData } from '#/lib/utils';
 import { MenuItem } from '#/components/index';
 
-// import mq from '#/lib/clients/mqtt';
+import mq from '#/lib/clients/mqtt';
 
 class MenuScreen extends React.Component {
   static contextType = RestaurantContext;
 
   constructor(props) {
     super(props);
-    this.state = { restaurant: null, basket: [], selectedItem: null };
+    this.state = {
+      restaurant: null,
+      basket: [],
+      selectedItem: null,
+      eventListener: null,
+    };
 
     const { navigation } = this.props;
 
     navigation.addListener('focus', () => {
+      this._getRestaurantInfo();
+
       const { getBasket } = this.context;
       getBasket().then(payload => {
         this.setState({ basket: payload || [] });
@@ -42,7 +49,25 @@ class MenuScreen extends React.Component {
   }
 
   componentDidMount() {
-    this._getRestaurantInfo();
+    mq.client.on('message', async (topic, message) => {
+      const msg = message.toString();
+
+      if (msg === 'ready') {
+        const { paymentDone } = this.context;
+        await paymentDone();
+        mq.client.unsubscribe(topic);
+      } else if (msg === 'menuUpdate') {
+        this._getRestaurantInfo();
+      }
+    });
+  }
+
+  componentWillUnmount() {
+    const { restaurant } = this.state;
+
+    if (restaurant) {
+      mq.client.unsubscribe(`restaurant/${restaurant.uuid}`);
+    }
   }
 
   _getRestaurantInfo = async () => {
@@ -52,7 +77,14 @@ class MenuScreen extends React.Component {
       .then((payload) => {
         this.setState({ restaurant: payload });
         const { navigation } = this.props;
-        navigation.setOptions({ title: payload.name });
+        navigation.setOptions({ title: payload });
+
+        mq.client.subscribe(`restaurant/${payload.uuid}`, (err) => {
+          if (err) {
+            console.log('[error]:', err);
+            return;
+          }
+        });
 
         const { saveRestaurantInfo } = this.context;
         saveRestaurantInfo(payload);
@@ -100,18 +132,19 @@ class MenuScreen extends React.Component {
         <ScrollView>
           <View>
             {
-              (restaurant && restaurant.Menu) && restaurant.Menu.catalog.map(subtopic => (
-                <>
-                  <Card key={subtopic} style={styles.subtopicCard} radiusSide="none">
-                    <Title style={styles.subtopicTitle} type="h5">{subtopic}</Title>
-                  </Card>
-                  {
-                    restaurant.Menu.items[subtopic].map(item => (
-                      <MenuItem key={item.uuid} data={item} onPress={() => this._selectItem(item)} />
-                    ))
-                  }
-                </>
-              ))
+              (restaurant && restaurant.Menu) && restaurant.Menu.catalog.map(subtopic =>
+                (restaurant.Menu.items[subtopic].filter(item => item.enabled).length > 0) && (
+                  <>
+                    <Card key={subtopic} style={styles.subtopicCard} radiusSide="none">
+                      <Title key={subtopic + "_title"} style={styles.subtopicTitle} type="h5">{subtopic}</Title>
+                    </Card>
+                    {
+                      restaurant.Menu.items[subtopic].map(item => item.enabled && (
+                        <MenuItem key={item.uuid} data={item} onPress={() => this._selectItem(item)} />
+                      ))
+                    }
+                  </>
+                ))
             }
           </View>
         </ScrollView>

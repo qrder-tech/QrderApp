@@ -35,12 +35,13 @@ export async function postUserLogin(data) {
 
 // POST:/user/registration?type=
 export async function postUserRegister(data) {
-  const { name, surname, email, username, password } = data;
+  const { name, surname, email, phoneNumber, username, password } = data;
 
   return makeRequest('post', '/auth/registration?type=consumer', {
     name,
     surname,
     email,
+    phoneNumber,
     username,
     password,
   });
@@ -54,14 +55,14 @@ export async function getUserMe() {
 // POST:/user/me
 export async function postUserMe(data) {
   const { name, surname, email, phoneNumber, username, password } = data;
-  return middleware(true, makeRequestAuth('post', '/consumer/me'), {
+  return middleware(true, makeRequestAuth('post', '/consumer/me', {
     name,
     surname,
     email,
     phoneNumber,
     username,
     password,
-  });
+  }));
 }
 
 // POST:/user/wallet

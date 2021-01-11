@@ -7,10 +7,12 @@ export const instance = axios.create({
   timeout: 5000,
 });
 
-export function makeRequest(type, path, config = null) {
+export function makeRequest(type, path, data = null) {
   console.warn('[Request]', type, path);
+  console.log('[Request]', type, path, data);
+
   return new Promise((resolve, reject) => {
-    instance[type](path, config)
+    instance[type](path, data)
       .then((res) => {
         resolve(res.data);
       })

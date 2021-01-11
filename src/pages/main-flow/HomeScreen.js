@@ -24,20 +24,23 @@ class HomeScreen extends React.Component {
       orders: null,
       user: null,
     };
+  }
+
+  componentDidMount() {
+    mq.client && mq.client.on('message', async (topic, message) => {
+      if (topic === 'consumer/all') {
+        this._getOffers();
+      }
+    });
 
     const { navigation } = this.props;
 
     navigation.addListener('focus', () => {
-      // this._getUser();
-      // this._getOffers();
+      this._getUser();
+      this._getOffers();
+      this._getUserOrders();
+      this._getFavourites();
     });
-  }
-
-  componentDidMount() {
-    this._getUser();
-    this._getOffers();
-    this._getUserOrders();
-    this._getFavourites();
   }
 
   _getUser = () => {
@@ -112,18 +115,19 @@ class HomeScreen extends React.Component {
               inactiveDotColor={theme.OUTLINE_COLOR}
               paginationBoxVerticalPadding={20}
               sliderBoxHeight={275}
+              resizeMode='stretch'
               autoplay
               circleLoop
             />)}
           </View>
           <View style={styles.orderHistory}>
-            <Title type="h4" style={{ textAlign: 'left', borderBottomWidth: 1, borderColor: theme.SECONDARY_COLOR, marginBottom: 8 }}>Previous Orders</Title>
+            <Title type="h4" style={{ textAlign: 'left', borderBottomWidth: 1, borderColor: theme.SECONDARY_COLOR, marginBottom: 8 }}>Previous Orders (Last 2)</Title>
             {orders && orders.slice(0, 2).map(order => (
               <PreviousOrderItem key={order.uuid} data={order} />
             ))}
           </View>
           <View style={styles.favorites}>
-            <Title type="h4" style={{ textAlign: 'left', borderBottomWidth: 1, borderColor: theme.SECONDARY_COLOR, marginBottom: 8 }}>Favourites</Title>
+            <Title type="h4" style={{ textAlign: 'left', borderBottomWidth: 1, borderColor: theme.SECONDARY_COLOR, marginBottom: 8 }}>Favourites (Newest 2)</Title>
             {favourites && favourites.slice(0, 2).map(restaurant => (
               <RestaurantItem key={restaurant.uuid} data={restaurant} />
             ))}

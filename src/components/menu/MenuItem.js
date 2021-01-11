@@ -13,10 +13,10 @@ import theme from '../../styles/theme.style';
 
 const Item = (props) => {
   const { data, onPress } = props;
-  const { name, desc, price, img } = data;
+  const { name, desc, price, img, enabled } = data;
 
   return (
-    <TouchableOpacity style={[styles.wrapper, theme.SHADOW]} onPress={onPress}>
+    <TouchableOpacity style={[styles.wrapper, theme.SHADOW]} onPress={onPress} disabled={!enabled}>
       <View style={[styles.imageWrapper]}>
         <Image
           style={styles.image}
@@ -26,7 +26,7 @@ const Item = (props) => {
       <View style={styles.body}>
         <View style={{ flex: 4, paddingRight: 8 }}>
           <Text style={[styles.text, styles.title]}>{name}</Text>
-          <Text style={[styles.text, styles.secondary]} numberOfLines={2}>
+          <Text style={[styles.text, styles.secondary]} numberOfLines={1}>
             {desc}
           </Text>
         </View>

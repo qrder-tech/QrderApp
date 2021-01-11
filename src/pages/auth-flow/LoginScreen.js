@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, StyleSheet, TouchableHighlight, View } from 'react-native';
+import { Alert, Text, StyleSheet, TouchableHighlight, View } from 'react-native';
 
 import { DefaultLayout } from '#/layouts';
 import { Button, Footer, Header, Input, Title } from '#/components';
@@ -31,6 +31,16 @@ class LoginScreen extends React.Component {
     navigation.navigate(page);
   };
 
+  _onChange = (text, name) => {
+    const { credentials } = this.state;
+    this.setState({
+      credentials: {
+        ...credentials,
+        [name]: text
+      }
+    });
+  };
+
   render() {
     const { credentials } = this.state;
     return (
@@ -46,6 +56,7 @@ class LoginScreen extends React.Component {
             placeholder="username"
             style={styles.input}
             value={credentials.username}
+            onChangeText={(e) => this._onChange(e, "username")}
           />
           <Input
             iconName="key"
@@ -53,6 +64,8 @@ class LoginScreen extends React.Component {
             placeholder="password"
             style={styles.input}
             value={credentials.password}
+            onChangeText={(e) => this._onChange(e, "password")}
+            secureTextEntry
           />
 
           <TouchableHighlight

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Switch, Text, View, KeyboardAvoidingView } from 'react-native';
 
 import { DefaultLayout } from '#/layouts';
 import { Button, Footer, Input, Title } from '#/components';
@@ -21,10 +21,12 @@ class WalletScreen extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      amount: 25,
       consumer: null,
-      creditCard: DUMMY_CARD,
       loading: true,
+      paymentData: {
+        amount: 25,
+        creditCard: DUMMY_CARD,
+      }
     };
 
     const { navigation } = this.props;
@@ -38,6 +40,20 @@ class WalletScreen extends React.Component {
     this.setState({ loading: false });
   }
 
+  _onChange = (text, name) => {
+    if (name === 'amount' && text < 0) {
+      return;
+    }
+
+    const { paymentData } = this.state;
+    this.setState({
+      paymentData: {
+        ...paymentData,
+        [name]: text
+      }
+    });
+  };
+
   _getConsumer = () => {
     getUserMe().then((payload) => {
       this.setState({
@@ -45,77 +61,100 @@ class WalletScreen extends React.Component {
         consumer: payload
       });
     }).catch(err => {
-      console.warn("err:", err);
+      Alert.alert(
+        "User Details Failed",
+        err && err.msg || "Unknown error. Please try later!",
+        [
+          { text: "OK" }
+        ],
+        { cancelable: true }
+      );
     });
   }
 
   _addBalance = () => {
     this.setState({ loading: true });
-    const { amount } = this.state;
+    const { paymentData } = this.state;
 
-    addBalance({ amount }).then((payload) => {
+    addBalance(paymentData).then((payload) => {
       this.setState({
         loading: false,
       });
 
       this._getConsumer();
     }).catch(err => {
-      console.warn("err:", err);
+      Alert.alert(
+        "Wallet Payment Failed",
+        err && err.msg || "Unknown error. Please try later!",
+        [
+          { text: "OK" }
+        ],
+        { cancelable: true }
+      );
     });
   }
 
   render() {
-    const { amount, consumer, loading, creditCard } = this.state;
+    const { consumer, loading, paymentData } = this.state;
+
     return (
       <DefaultLayout loading={loading} type="restaurant">
         <View style={styles.headerWrapper}>
           <Title type="h4">Balance: {consumer ? consumer.balance : 0} ₺</Title>
         </View>
 
-        <ScrollView contentContainerStyle={{ flex: 1, justifyContent: 'center' }}>
-          <View style={styles.body}>
-            <Input
-              iconName="lira-sign"
-              name="amount"
-              placeholder="Amount"
-              style={styles.input}
-              value={amount.toString()}
-            />
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior="height"
+        >
+          <ScrollView contentContainerStyle={{ flex: 1, justifyContent: 'center' }}>
+            <View style={styles.body}>
+              <Input
+                iconName="lira-sign"
+                name="amount"
+                onChangeText={(text) => this._onChange(text, "amount")}
+                placeholder="Amount"
+                style={styles.input}
+                value={paymentData && paymentData.amount.toString()}
+              />
 
-            <Input
-              iconName="user-alt"
-              name="name"
-              placeholder="Name on Card"
-              style={styles.input}
-              value={creditCard && creditCard.name}
-            />
+              <Input
+                iconName="user-alt"
+                name="name"
+                onChangeText={(text) => this._onChange(text, "name")}
+                placeholder="Name on Card"
+                style={styles.input}
+                value={paymentData && paymentData.creditCard.name}
+              />
 
-            <Input
-              iconName="credit-card"
-              name="number"
-              placeholder="Card Number"
-              style={styles.input}
-              value={creditCard && creditCard.number}
-            />
+              <Input
+                iconName="credit-card"
+                name="number"
+                onChangeText={(text) => this._onChange(text, "number")}
+                placeholder="Card Number"
+                style={styles.input}
+                value={paymentData && paymentData.creditCard.number}
+              />
 
-            <Input
-              iconName="calendar-alt"
-              name="date"
-              placeholder="Expiration Date"
-              style={styles.input}
-              value={creditCard && creditCard.date}
-            />
+              <Input
+                iconName="calendar-alt"
+                name="date"
+                onChangeText={(text) => this._onChange(text, "date")}
+                placeholder="Expiration Date"
+                style={styles.input}
+                value={paymentData && paymentData.creditCard.date}
+              />
 
-            <Input
-              iconName="unlock-alt"
-              name="ccv"
-              placeholder="CCV"
-              style={styles.input}
-              value={creditCard && creditCard.ccv}
-            />
-          </View>
-        </ScrollView>
-
+              <Input
+                iconName="unlock-alt"
+                name="ccv"
+                placeholder="CCV"
+                style={styles.input}
+                value={paymentData && paymentData.creditCard.ccv}
+              />
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
         <Footer>
           <Button
             onPress={() => this._addBalance()}

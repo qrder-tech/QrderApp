@@ -14,10 +14,13 @@ import Footer from '../Footer';
 
 const ModifyItem = (props) => {
   const [quantity, setQuantity] = useState(1);
-  const [meta, setMeta] = useState({});
 
   const { data, callback, onPress } = props;
   const { name, img, desc, price, options } = data;
+
+  const [meta, setMeta] = useState(
+    options && options.split(";").reduce((ac, a) => ({ ...ac, [a]: false }), {})
+  );
 
   return (
     <Popup onPress={onPress}>
@@ -56,7 +59,11 @@ const ModifyItem = (props) => {
           {
             options && options.split(';').map(m => (
               <View key={m} style={styles.setting}>
-                <CheckBox value={meta[m]} onValueChange={(v) => setMeta({ ...meta, [m]: v })} />
+                <CheckBox value={meta[m]} onValueChange={(v) => {
+                  let temp = meta;
+                  temp[m] = v;
+                  setMeta({ ...temp });
+                }} />
                 <Text style={{ textTransform: 'capitalize' }}>{m}</Text>
               </View>
             )) || null

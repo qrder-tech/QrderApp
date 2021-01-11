@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Switch, Text, View, KeyboardAvoidingView } from 'react-native';
 
 import { DefaultLayout } from '#/layouts';
 import { Button, Footer, Input, Title } from '#/components';
@@ -24,7 +24,10 @@ class PaymentScreen extends React.Component {
     this.state = {
       creditCard: DUMMY_CARD,
       loading: false,
-      order: null,
+      // order: null,
+      order: props.route.params && props.route.params.basket || null,
+      isFake: props.route.params && props.route.params.isFake || false,
+      fakePaymentCallback: props.route.params && props.route.params.fakePaymentCallback || null,
       savedOrder: null,
       paymentType: 0,
     };
@@ -33,6 +36,12 @@ class PaymentScreen extends React.Component {
 
     navigation.addListener('focus', () => {
       this._getConsumer();
+
+      const { isFake } = this.state;
+
+      if (isFake) {
+        return;
+      }
 
       const { getSavedOrder } = this.context;
 
@@ -46,7 +55,31 @@ class PaymentScreen extends React.Component {
   }
 
   componentDidMount() {
+    const { isFake, order } = this.state;
+
+    console.log(order);
+
+    if (isFake) {
+      let totalPrice = 0;
+
+      order.map(item => {
+        totalPrice += item.price * item.quantity
+        return item;
+      });
+
+      this.setState({ order: { totalPrice } });
+    }
   }
+
+  _onChange = (text, name) => {
+    const { creditCard } = this.state;
+    this.setState({
+      creditCard: {
+        ...creditCard,
+        [name]: text
+      }
+    });
+  };
 
   _getConsumer = () => {
     getUserMe().then((payload) => {
@@ -74,7 +107,7 @@ class PaymentScreen extends React.Component {
   }
 
   _pay = () => {
-    const { consumer, order, paymentType } = this.state;
+    const { consumer, order, paymentType, isFake } = this.state;
 
     if (!paymentType && (consumer.balance - order.totalPrice) < 0) {
       Alert.alert(
@@ -92,6 +125,11 @@ class PaymentScreen extends React.Component {
     this.setState({ loading: true });
 
     if (!order) {
+      return;
+    }
+
+    if (isFake) {
+      this._fakePayment();
       return;
     }
 
@@ -115,6 +153,14 @@ class PaymentScreen extends React.Component {
         { cancelable: true }
       );
     });
+  }
+
+  _fakePayment = () => {
+    const { fakePaymentCallback, paymentType, order } = this.state;
+    fakePaymentCallback(paymentType, order.totalPrice);
+    this.setState({ loading: false });
+    const { navigation } = this.props;
+    navigation.goBack();
   }
 
   render() {
@@ -157,39 +203,48 @@ class PaymentScreen extends React.Component {
                 </View>
               )
             ) : (
-                <View style={styles.body}>
-                  <Input
-                    iconName="user-alt"
-                    name="name"
-                    placeholder="Name on Card"
-                    style={styles.input}
-                    value={creditCard && creditCard.name}
-                  />
+                <KeyboardAvoidingView
+                  style={{ flex: 1 }}
+                  behavior="height"
+                >
+                  <View style={styles.body}>
+                    <Input
+                      iconName="user-alt"
+                      name="name"
+                      onChangeText={(text) => this._onChange(text, "name")}
+                      placeholder="Name on Card"
+                      style={styles.input}
+                      value={creditCard && creditCard.name}
+                    />
 
-                  <Input
-                    iconName="credit-card"
-                    name="number"
-                    placeholder="Card Number"
-                    style={styles.input}
-                    value={creditCard && creditCard.number}
-                  />
+                    <Input
+                      iconName="credit-card"
+                      name="number"
+                      onChangeText={(text) => this._onChange(text, "number")}
+                      placeholder="Card Number"
+                      style={styles.input}
+                      value={creditCard && creditCard.number}
+                    />
 
-                  <Input
-                    iconName="calendar-alt"
-                    name="date"
-                    placeholder="Expiration Date"
-                    style={styles.input}
-                    value={creditCard && creditCard.date}
-                  />
+                    <Input
+                      iconName="calendar-alt"
+                      name="date"
+                      onChangeText={(text) => this._onChange(text, "date")}
+                      placeholder="Expiration Date"
+                      style={styles.input}
+                      value={creditCard && creditCard.date}
+                    />
 
-                  <Input
-                    iconName="unlock-alt"
-                    name="ccv"
-                    placeholder="CCV"
-                    style={styles.input}
-                    value={creditCard && creditCard.ccv}
-                  />
-                </View>
+                    <Input
+                      iconName="unlock-alt"
+                      name="ccv"
+                      onChangeText={(text) => this._onChange(text, "ccv")}
+                      placeholder="CCV"
+                      style={styles.input}
+                      value={creditCard && creditCard.ccv}
+                    />
+                  </View>
+                </KeyboardAvoidingView>
               )
           }
         </ScrollView>

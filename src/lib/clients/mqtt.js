@@ -1,7 +1,7 @@
 import mqtt from 'mqtt/dist/mqtt';
 
 import config from '#/config';
-import { getData, displayNotification } from '#/lib/utils';
+import { getData, displayNotification, displayImageNotification } from '#/lib/utils';
 
 
 const mq = {};
@@ -9,12 +9,13 @@ const mq = {};
 mq.connected = false;
 mq.client = null;
 
-mq.init = async () => {
+mq.init = async (callback = null) => {
   if (mq.client) {
     return;
   }
 
-  const clientId = `qrder-app-${await getData('uuid')}`;
+  const uuid = await getData('uuid');
+  const clientId = `qrder-app-${uuid}`;
 
   mq.clientId = clientId;
   mq.client = mqtt.connect(`${config.mqtt.HOSTNAME}:${config.mqtt.PORT_TLS}`, {
@@ -29,7 +30,14 @@ mq.init = async () => {
     console.log(`🐇 Client is connected to MQTT broker as '${mq.clientId}'`);
     mq.connected = true;
 
-    mq.client.subscribe('qrderApp/test', (err) => {
+    mq.client.subscribe('consumer/all', (err) => {
+      if (err) {
+        console.log('[error]:', err);
+        return;
+      }
+    });
+
+    mq.client.subscribe(`consumer/${uuid}`, (err) => {
       if (err) {
         console.log('[error]:', err);
         return;
@@ -39,7 +47,11 @@ mq.init = async () => {
 
   mq.client.on('message', (topic, message) => {
     console.warn(`[${topic}]: ${message.toString()}`);
-    displayNotification(topic, message);
+    if (topic === 'consumer/all') {
+      displayImageNotification(topic, JSON.parse(message.toString()));
+    } else {
+      displayNotification(topic, message.toString());
+    }
   });
 };
 

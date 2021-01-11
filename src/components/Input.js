@@ -4,7 +4,7 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import theme from '#/styles/theme.style';
 
 const Input = (props) => {
-  const { iconName, name, onChangeText, placeholder, secureTextEntry, style, value } = props;
+  const { iconName, name, onChange, onChangeText, placeholder, secureTextEntry, style, value } = props;
 
   return (
     <View style={[styles.wrapper, style]} >
@@ -15,7 +15,8 @@ const Input = (props) => {
       )}
       <TextInput
         name={name}
-        onChangeText={onChangeText && ((text) => onChangeText(name, text))}
+        onChange={onChange}
+        onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor={'#eee'}
         style={[styles.input]}

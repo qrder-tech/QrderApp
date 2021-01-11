@@ -6,7 +6,7 @@ import theme from '#/styles/theme.style';
 
 
 const IconButton = (props) => {
-  const { color, name, onPress, size, style } = props;
+  const { color, name, onPress, size, style, solid } = props;
 
   return (
     <TouchableOpacity
@@ -16,7 +16,7 @@ const IconButton = (props) => {
       ]}
       onPress={onPress}
       activeOpacity={0.5}>
-      <Icon color={color} name={name} size={size} />
+      <Icon color={color} name={name} size={size} solid={solid} />
     </TouchableOpacity>
   );
 };

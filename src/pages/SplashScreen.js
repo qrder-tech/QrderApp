@@ -1,21 +1,21 @@
 import React from 'react';
 import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { Container, Image } from '#/components';
+import { Image } from '#/components';
 import theme from '#/styles/theme.style';
+
+import logo from '#/assets/images/guru.png';
 
 class SplashScreen extends React.Component {
   render() {
     return (
-      <Container>
-        <View style={styles.wrapper}>
-          <View style={styles.logoWrapper}>
-            <Image
-              source={{ uri: 'https://reactnative.dev/docs/assets/p_cat1.png' }}
-            />
-          </View>
+      <View style={styles.wrapper}>
+        <View style={styles.logoWrapper}>
+          <Image
+            source={logo}
+          />
         </View>
-      </Container>
+      </View>
     );
   }
 }
@@ -23,14 +23,14 @@ class SplashScreen extends React.Component {
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    backgroundColor: theme.PRIMARY_BACKGROUND_COLOR,
-    paddingHorizontal: 48,
+    backgroundColor: theme.SECONDARY_COLOR,
+    paddingHorizontal: 32,
     paddingVertical: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
   logoWrapper: {
-    width: '75%',
+    width: '100%',
     aspectRatio: 1,
   },
 });

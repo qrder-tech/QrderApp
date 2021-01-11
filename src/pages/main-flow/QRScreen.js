@@ -33,7 +33,7 @@ class QRScreen extends React.Component {
 
   componentDidMount() {
     const { readQr } = this.context;
-    readQr(DUMMY_QR_DATA);
+    // readQr(DUMMY_QR_DATA);
   }
 
   _onRead = (payload) => {
